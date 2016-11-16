@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: irotsoma
+      changes:
+        - createTable:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: nvarchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: nvarchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: nvarchar(255)
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: nvarchar(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 2
+      author: irotsoma
+      changes:
+        - insert:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: username
+                  value: test
+              - column:
+                  name: password
+                  value: "\$2a\$06\$ncXfcuTwtLaktLL0epJYJuflWSjgaQuiMIFwxRt8e1wyhoKvllY3q"
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: role
+                  value: ROLE_TEST
+        - insert:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: username
+                  value: admin
+              - column:
+                  name: password
+                  value: "\$2a\$06\$8SUHH8rSwhF/KsAPGmjYy.CatNNV3GSv4YgkyKNcG47cdO6uccqTu"
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: user_id
+                  value: 2
+              - column:
+                  name: role
+                  value: ROLE_ADMIN
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 3
+              - column:
+                  name: user_id
+                  value: 2
+              - column:
+                  name: role
+                  value: ROLE_USER

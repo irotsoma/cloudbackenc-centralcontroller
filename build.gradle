@@ -1,0 +1,177 @@
+/*
+ * Copyright (C) 2016  Irotsoma, LLC
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+buildscript {
+    ext.commonVersion = '0.2-SNAPSHOT'
+    ext.springBootVersion = '1.4.1.RELEASE'
+    ext.tornadofxVersion = '1.5.7'
+    ext.junitVersion = '4.12'
+    ext.log4jVersion = '2.6.2'
+    ext.kotlinVersion = '1.0.5-2'
+    ext.apacheCommonsValidatorVersion = '1.5.1'
+    ext.apacheCommonsCompressionVersion = '1.12'
+    ext.jacksonVersion = '2.8.5'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {url 'http://repo.spring.io/plugins-release'}
+
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+        classpath "org.liquibase:liquibase-gradle-plugin:1.2.1"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.9"
+    }
+
+    //try to pull repository credentials from either properties or environment variables
+    ext.repoUsername = project.hasProperty('ossrhUsername') ? ossrhUsername : System.getenv('ossrhUsername') ?: ''
+    ext.repoPassword = project.hasProperty('ossrhPassword') ? ossrhPassword : System.getenv('ossrhPassword') ?: ''
+
+}
+plugins {
+    id "com.github.hierynomus.license" version "0.13.1"
+}
+
+
+group 'com.irotsoma.cloudbackenc'
+version '0.2-SNAPSHOT'
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'signing'
+apply plugin: 'spring-boot'
+apply plugin: 'propdeps'
+apply plugin: 'org.liquibase.gradle'
+def isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+if (isReleaseVersion){
+    excludeDevtools = true
+}
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+repositories {
+    mavenCentral()
+    //if the current project is a snapshot then allow using snapshot versions from maven central  Having this as an if prevents accidentally building a release version with snapshot dependencies.
+    if (!isReleaseVersion){
+        maven{
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+}
+if (project.version.endsWith('-SNAPSHOT')) {
+    configurations.all {
+        // check for updates every build
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    compile "org.apache.logging.log4j:log4j-1.2-api:$log4jVersion"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    //spring boot
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-logging'
+    compile 'org.springframework.boot:spring-boot-starter-security'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-devtools'
+    optional 'org.springframework.boot:spring-boot-configuration-processor'
+    //common classes
+    compile "com.irotsoma.cloudbackenc:common:$commonVersion"
+    compile "com.irotsoma.cloudbackenc.common:cloudservice:$commonVersion"
+    compile "com.irotsoma.cloudbackenc.common:encryptionservice:$commonVersion"
+    //jackson
+    compile 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    compile 'com.fasterxml.jackson.core:jackson-core'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
+    compile 'com.fasterxml.jackson.core:jackson-annotations'
+    //h2
+    compile 'com.h2database:h2'
+    //liquibase
+    compile 'org.liquibase:liquibase-core'
+    //apache commons
+    compile "commons-validator:commons-validator:$apacheCommonsValidatorVersion"
+    //test
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile "junit:junit:$junitVersion"
+}
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+}
+
+//allow for excluding certain tests via external configuration
+test{
+    exclude hasProperty('testExclude') ? testExclude : System.getenv('testExclude') ?: ''
+}
+
+//this section downloads some reports regarding the licenses of various dependencies and includes them in the
+// META-INF/licenses folder
+apply plugin: 'com.github.hierynomus.license'
+license {
+    ignoreFailures true
+    mapping('kt', 'JAVADOC_STYLE')
+    mapping('fxml', 'XML_STYLE')
+    excludes(['**/*.json', '**/*.properties', '**/LICENSE', '**/*license*.html', '**/*license*.xml', '**/COPYING', '**/COPYING.LESSER', '**/*.jar'])
+}
+task copyLicenseReports(type: Copy) {
+    from "$buildDir/reports/license/"
+    into "$buildDir/license-reports/META-INF/licenses"
+}
+assemble.dependsOn 'downloadLicenses'
+assemble.dependsOn 'copyLicenseReports'
+copyLicenseReports.mustRunAfter 'downloadLicenses'
+
+//javadoc stuff for Kotlin
+apply plugin: 'org.jetbrains.dokka'
+dokka {
+    moduleName = 'data'
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/docs/javadoc"
+    linkMapping {
+        dir = "src/main/kotlin"
+        url = "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"
+        suffix = "#L"
+    }
+    sourceDirs = files('src/main/kotlin')
+}
+task javadocJar(type: Jar, dependsOn: dokka) {
+    classifier = 'javadoc'
+    from dokka.outputDirectory
+}
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+compileJava.dependsOn(processResources)
+
+processResources {
+    expand(project.properties)
+}
+
+springBoot {
+    executable = true
+}
