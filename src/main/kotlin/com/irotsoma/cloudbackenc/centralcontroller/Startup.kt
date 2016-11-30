@@ -30,7 +30,7 @@ open class CentralController
 
 fun main(args: Array<String>) {
     val centralController = SpringApplication(CentralController::class.java, *args)
-    centralController.addListeners(ApplicationPidFileWriter("eureka-server.pid"))
+    //centralController.addListeners(ApplicationPidFileWriter("eureka-server.pid"))
     centralController.run()
 
 }
