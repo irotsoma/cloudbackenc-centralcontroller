@@ -1,3 +1,3 @@
-# cloudbackenc-centralcontroller [![CircleCI](https://circleci.com/gh/irotsoma/encryptionservice-bouncycastle/tree/master.svg?style=svg)](https://circleci.com/gh/irotsoma/encryptionservice-bouncycastle/tree/master)
+# cloudbackenc-centralcontroller [![CircleCI](https://circleci.com/gh/irotsoma/cloudbackenc-centralcontroller/tree/master.svg?style=svg)](https://circleci.com/gh/irotsoma/cloudbackenc-centralcontroller/tree/master)
 
 Central controller service for CloudBackEnc.
