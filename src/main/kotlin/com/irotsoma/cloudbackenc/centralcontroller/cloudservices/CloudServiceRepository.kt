@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.irotsoma.cloudbackenc.centralcontroller.VersionedExtensionFactoryClass
 import com.irotsoma.cloudbackenc.common.cloudservice.*
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,12 +66,13 @@ open class CloudServiceRepository : ApplicationContextAware {
             return
         }
         //internal resources extension directory (packaged extensions or test extensions)
-        val resourcesExtensionsDirectory: File? = File(javaClass.classLoader.getResource("extensions").file)
+        val resourcesExtensionsDirectory: File? = try{ File(javaClass.classLoader?.getResource("extensions")?.file) } catch(e:Exception){ null }
         //LOG.debug("Resources path: ${javaClass?.classLoader?.getResources("*")?.toList()?.get(0)?.path ?: "null"}")
         LOG.debug("Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}")
-        var jarURLs = emptyArray<URL>()
-        var factoryClasses = emptyMap<UUID,String>()
+        val jarURLs : HashMap<UUID,URL> = HashMap()
+        val factoryClasses: HashMap<UUID,VersionedExtensionFactoryClass> = HashMap()
 
+        //cycle through all files in the extensions directories
         for (jar in (extensionsDirectory.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
             try {
                 LOG.debug("Loading extension jar file: ${jar.absolutePath}")
@@ -88,9 +90,18 @@ open class CloudServiceRepository : ApplicationContextAware {
                     val mapperData: CloudServiceExtensionConfig = mapper.readValue(jsonValue)
                     //add values to maps for consumption later
                     val cloudServiceUUID = UUID.fromString(mapperData.serviceUUID)
-                    factoryClasses = factoryClasses.plus(Pair(cloudServiceUUID,mapperData.packageName+"."+mapperData.factoryClass))
-                    cloudServiceNames.add(CloudServiceExtension(cloudServiceUUID,mapperData.serviceName))
-                    jarURLs = jarURLs.plus(jar.toURI().toURL())
+                    if (factoryClasses.containsKey(cloudServiceUUID)){
+                        //if the UUID is already in the map check to see if it's a newer version.  If so replace, the existing one, otherwise ignore the new one.
+                        if (factoryClasses[cloudServiceUUID]!!.version < mapperData.releaseVersion){
+                            factoryClasses.replace(cloudServiceUUID,VersionedExtensionFactoryClass("${mapperData.packageName}.${mapperData.factoryClass}", mapperData.releaseVersion))
+                            jarURLs.replace(cloudServiceUUID,jar.toURI().toURL())
+                        }
+                    } else {
+                        //if the UUID is not in the map add it
+                        factoryClasses.put(cloudServiceUUID, VersionedExtensionFactoryClass("${mapperData.packageName}.${mapperData.factoryClass}", mapperData.releaseVersion))
+                        jarURLs.put(cloudServiceUUID,jar.toURI().toURL())
+                        cloudServiceNames.add(CloudServiceExtension(cloudServiceUUID, mapperData.serviceName))
+                    }
                 }
             } catch (e: MissingKotlinParameterException) {
                 LOG.warn("Cloud service extension configuration file is missing a required field.  This extension will be unavailable: ${jar.name}.  Error Message: ${e.message}")
@@ -99,11 +110,11 @@ open class CloudServiceRepository : ApplicationContextAware {
             }
         }
         //create a class loader with all of the jars
-        val classLoader = URLClassLoader(jarURLs,_applicationContext.classLoader)
+        val classLoader = URLClassLoader(jarURLs.values.toTypedArray(), _applicationContext.classLoader)
         //cycle through all of the classes, make sure they inheritors CloudServiceFactory, and add them to the list
         for ((key, value) in factoryClasses) {
             try {
-                val gdClass = classLoader.loadClass(value)
+                val gdClass = classLoader.loadClass(value.canonicalName)
                 //verify instance of gdClass is a CloudServiceFactory
                 if (gdClass.newInstance() is CloudServiceFactory) {
                     //add to list -- suppress warning about unchecked class as we did that in the if statement for an instance but it can't be done directly
