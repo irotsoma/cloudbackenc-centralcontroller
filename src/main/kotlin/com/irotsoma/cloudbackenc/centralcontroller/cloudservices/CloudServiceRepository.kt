@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.irotsoma.cloudbackenc.centralcontroller.VersionedExtensionFactoryClass
+import com.irotsoma.cloudbackenc.common.VersionedExtensionFactoryClass
 import com.irotsoma.cloudbackenc.common.cloudservice.*
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +70,7 @@ open class CloudServiceRepository : ApplicationContextAware {
         //LOG.debug("Resources path: ${javaClass?.classLoader?.getResources("*")?.toList()?.get(0)?.path ?: "null"}")
         LOG.debug("Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}")
         val jarURLs : HashMap<UUID,URL> = HashMap()
-        val factoryClasses: HashMap<UUID,VersionedExtensionFactoryClass> = HashMap()
+        val factoryClasses: HashMap<UUID, VersionedExtensionFactoryClass> = HashMap()
 
         //cycle through all files in the extensions directories
         for (jar in (extensionsDirectory.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
@@ -93,7 +93,7 @@ open class CloudServiceRepository : ApplicationContextAware {
                     if (factoryClasses.containsKey(cloudServiceUUID)){
                         //if the UUID is already in the map check to see if it's a newer version.  If so replace, the existing one, otherwise ignore the new one.
                         if (factoryClasses[cloudServiceUUID]!!.version < mapperData.releaseVersion){
-                            factoryClasses.replace(cloudServiceUUID,VersionedExtensionFactoryClass("${mapperData.packageName}.${mapperData.factoryClass}", mapperData.releaseVersion))
+                            factoryClasses.replace(cloudServiceUUID, VersionedExtensionFactoryClass("${mapperData.packageName}.${mapperData.factoryClass}", mapperData.releaseVersion))
                             jarURLs.replace(cloudServiceUUID,jar.toURI().toURL())
                         }
                     } else {

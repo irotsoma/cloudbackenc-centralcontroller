@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.irotsoma.cloudbackenc.centralcontroller.VersionedExtensionFactoryClass
-import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionServicesSettings
+import com.irotsoma.cloudbackenc.common.VersionedExtensionFactoryClass
 import com.irotsoma.cloudbackenc.common.encryptionservice.*
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,7 +66,7 @@ open class EncryptionServiceRepository : ApplicationContextAware {
         val resourcesExtensionsDirectory: File? = try {File(javaClass.classLoader?.getResource("extensions")?.file)} catch (e:Exception) {null}
 
         val jarURLs : HashMap<UUID,URL> = HashMap()
-        val factoryClasses: HashMap<UUID,VersionedExtensionFactoryClass> = HashMap()
+        val factoryClasses: HashMap<UUID, VersionedExtensionFactoryClass> = HashMap()
 
         for (jar in (extensionsDirectory.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{ directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
             try {
