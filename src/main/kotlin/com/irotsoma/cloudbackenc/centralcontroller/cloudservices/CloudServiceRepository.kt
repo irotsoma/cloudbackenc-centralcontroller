@@ -24,7 +24,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.irotsoma.cloudbackenc.common.VersionedExtensionFactoryClass
-import com.irotsoma.cloudbackenc.common.cloudservice.*
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.*
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -60,14 +60,17 @@ open class CloudServiceRepository : ApplicationContextAware {
     fun loadDynamicServices() {
         //external config extension directory
         val extensionsDirectory: File = File(cloudServicesSettings.directory)
-        LOG.debug("Config extension directory:  ${extensionsDirectory.absolutePath}")
-        if (!extensionsDirectory.isDirectory || !extensionsDirectory.canRead()) {
-            LOG.warn("Config extensions directory is missing or unreadable. ${extensionsDirectory.absolutePath}")
-            return
-        }
+
+
         //internal resources extension directory (packaged extensions or test extensions)
         val resourcesExtensionsDirectory: File? = try{ File(javaClass.classLoader?.getResource("extensions")?.file) } catch(e:Exception){ null }
-        //LOG.debug("Resources path: ${javaClass?.classLoader?.getResources("*")?.toList()?.get(0)?.path ?: "null"}")
+        if ((!extensionsDirectory.isDirectory || !extensionsDirectory.canRead()) && ((!(resourcesExtensionsDirectory?.isDirectory ?: false) || !(resourcesExtensionsDirectory?.canRead() ?: false)))) {
+            LOG.warn("Extensions directory is missing or unreadable.")
+            LOG.warn("Config directory: ${extensionsDirectory.absolutePath}")
+            LOG.warn("Resource directory: ${resourcesExtensionsDirectory?.absolutePath}")
+            return
+        }
+        LOG.debug("Config extension directory:  ${extensionsDirectory.absolutePath}")
         LOG.debug("Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}")
         val jarURLs : HashMap<UUID,URL> = HashMap()
         val factoryClasses: HashMap<UUID, VersionedExtensionFactoryClass> = HashMap()

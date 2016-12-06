@@ -98,8 +98,8 @@ dependencies {
     optional 'org.springframework.boot:spring-boot-configuration-processor'
     //common classes
     compile "com.irotsoma.cloudbackenc:common:$commonVersion"
-    compile "com.irotsoma.cloudbackenc.common:cloudservice:$commonVersion"
-    compile "com.irotsoma.cloudbackenc.common:encryptionservice:$commonVersion"
+    compile "com.irotsoma.cloudbackenc.common:cloudservicesserviceinterface:$commonVersion"
+    //compile "com.irotsoma.cloudbackenc.common:encryptionserviceinterface:$commonVersion"
     //jackson
     compile 'com.fasterxml.jackson.module:jackson-module-kotlin'
     compile 'com.fasterxml.jackson.core:jackson-core'
@@ -172,7 +172,9 @@ artifacts {
 compileJava.dependsOn(processResources)
 
 processResources {
-    expand(project.properties)
+    filesMatching('application.properties') {
+        expand(project.properties)
+    }
 }
 
 springBoot {

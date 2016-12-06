@@ -20,7 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.common.RestException
-import com.irotsoma.cloudbackenc.common.cloudservice.CloudServiceException
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice

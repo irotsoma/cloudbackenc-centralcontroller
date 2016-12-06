@@ -19,7 +19,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller
 
-import com.irotsoma.cloudbackenc.common.cloudservice.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
 import org.hamcrest.Matchers.containsString
 import org.junit.Assert.assertThat
 import org.junit.Test

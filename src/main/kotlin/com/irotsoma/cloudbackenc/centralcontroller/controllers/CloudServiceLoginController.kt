@@ -22,9 +22,9 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
-import com.irotsoma.cloudbackenc.common.cloudservice.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservice.CloudServiceFactory
-import com.irotsoma.cloudbackenc.common.cloudservice.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource

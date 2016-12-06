@@ -68,7 +68,7 @@ databaseChangeLog:
                   value: test
               - column:
                   name: password
-                  value: "\$2a\$06\$ncXfcuTwtLaktLL0epJYJuflWSjgaQuiMIFwxRt8e1wyhoKvllY3q"
+                  value: '$2a$06$ncXfcuTwtLaktLL0epJYJuflWSjgaQuiMIFwxRt8e1wyhoKvllY3q'
         - insert:
             tableName: user_roles
             columns:
@@ -92,7 +92,7 @@ databaseChangeLog:
                   value: admin
               - column:
                   name: password
-                  value: "\$2a\$06\$8SUHH8rSwhF/KsAPGmjYy.CatNNV3GSv4YgkyKNcG47cdO6uccqTu"
+                  value: '$2a$06$8SUHH8rSwhF/KsAPGmjYy.CatNNV3GSv4YgkyKNcG47cdO6uccqTu'
         - insert:
             tableName: user_roles
             columns:
