@@ -46,7 +46,7 @@ open class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity){
         http
             .authorizeRequests()
-                .antMatchers("/eureka").permitAll() //no need to secure the eureka server
+                //.antMatchers("/eureka").permitAll() //no need to secure the eureka server
                 .anyRequest().authenticated() //but anything else requires authentication
                 .and()
             .httpBasic()

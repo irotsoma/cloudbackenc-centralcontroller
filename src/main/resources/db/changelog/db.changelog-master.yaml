@@ -44,7 +44,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: user_id
+                  name: userId
                   type: int
                   constraints:
                     nullable: false
@@ -76,7 +76,7 @@ databaseChangeLog:
                   name: id
                   value: 1
               - column:
-                  name: user_id
+                  name: userId
                   value: 1
               - column:
                   name: role
@@ -100,7 +100,7 @@ databaseChangeLog:
                   name: id
                   value: 2
               - column:
-                  name: user_id
+                  name: userId
                   value: 2
               - column:
                   name: role
@@ -112,8 +112,63 @@ databaseChangeLog:
                   name: id
                   value: 3
               - column:
-                  name: user_id
+                  name: userId
                   value: 2
               - column:
                   name: role
                   value: ROLE_USER
+  - changeSet:
+      id: 3
+      author: irotsoma
+      changes:
+        - createTable:
+            tableName: files
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fileUuid
+                  type: char(36)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: ownerUuid
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ownerFileUuid
+                  type: char(36)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: file_cloudservice
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fileId
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cloudserviceUuid
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lastUpdated
+                  type: date
+                  constraints:
+                    nullable: false

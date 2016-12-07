@@ -14,11 +14,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
-package com.irotsoma.cloudbackenc.centralcontroller.controllers
 /*
  * Created by irotsoma on 9/22/2016.
  */
+package com.irotsoma.cloudbackenc.centralcontroller.controllers
+
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccount
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
@@ -30,7 +30,6 @@ import com.irotsoma.cloudbackenc.common.logger
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -38,17 +37,14 @@ import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import javax.servlet.http.HttpServletResponse
 import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalSupertypes
 
 
-@Controller
+@RestController
+@RequestMapping("/users")
 open class UserController {
     companion object { val LOG by logger() }
 
@@ -57,7 +53,7 @@ open class UserController {
     @Autowired
     lateinit var messageSource: MessageSource
 
-    @RequestMapping("/users", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
+    @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalSupertypes.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
@@ -94,13 +90,10 @@ open class UserController {
         return ResponseEntity(headers, HttpStatus.CREATED)
     }
 
-    @RequestMapping("/users/{userId}", method = arrayOf(RequestMethod.PUT), produces = arrayOf("application/json"))
-    fun updateUser(@PathVariable(value="userId")userId: String, @RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
+    @RequestMapping(method = arrayOf(RequestMethod.PUT), produces = arrayOf("application/json"))
+    fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        if (userId.equals(updatedUser.userId, true)){
-            response.sendError(HttpStatus.BAD_REQUEST.value(), messageSource.getMessage("centralcontroller.user.controller.error.user.id.mismatch", null, LocaleContextHolder.getLocale()))
-        }
         //authorized user requesting the update must either be the user in the request or be an admin
         if ((updatedUser.userId != authorizedUser.name) || (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
         {
@@ -127,9 +120,20 @@ open class UserController {
         //TODO: email user
         return ResponseEntity(updatedUser.maskedPasswordInstance(), HttpStatus.OK)
     }
-    @RequestMapping("/users/{userId}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
+
+
+    @RequestMapping("/{userId}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun deleteUser(@RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalSupertypes.None>{
+    fun deleteUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalSupertypes.None>{
+        val authorizedUser = SecurityContextHolder.getContext().authentication.name
+
+
+        //TODO implement this
+        return ResponseEntity(HttpStatus.OK)
+    }
+    @RequestMapping("/{userId}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @Secured("ROLE_ADMIN")
+    fun getUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalSupertypes.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication.name
 
 

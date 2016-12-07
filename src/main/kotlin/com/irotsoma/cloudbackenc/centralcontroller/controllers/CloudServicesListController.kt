@@ -22,10 +22,10 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceRepository
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.RestController
 
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.ResponseBody
  *
  * @author Justin Zak
  */
-@Controller
+@RestController
 @RequestMapping("/cloud-services",produces = arrayOf("application/json"))
 open class CloudServicesListController {
 
