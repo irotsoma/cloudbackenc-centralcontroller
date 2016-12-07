@@ -22,6 +22,10 @@ open class FileController {
     @ResponseBody fun receiveNewFile(@RequestParam("metadata") request: FileMetadata, @RequestParam("file") file: MultipartFile){
 
 
+        if (fileRepostitory.findByOwnerUuidAndOwnerFileUuid(request.senderId.toString(),request.senderFileId.toString())!=null){
+
+        }
+
 
 
 

@@ -6,7 +6,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 import javax.persistence.*
 
 @Entity
-@Table(name="files")
+@Table(name="file")
 class FileObject() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +22,7 @@ class FileObject() {
     var ownerFileUuid: String? = null
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "file_cloudservice", joinColumns = arrayOf(JoinColumn(name = "file_id", referencedColumnName = "id")))
-    var cloudserviceList: List<FileCloudService>? = null
+    @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_id", referencedColumnName = "id")))
+    var cloudServiceList: List<FileCloudService>? = null
 
 }

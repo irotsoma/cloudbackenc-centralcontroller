@@ -122,7 +122,7 @@ databaseChangeLog:
       author: irotsoma
       changes:
         - createTable:
-            tableName: files
+            tableName: file
             columns:
               - column:
                   name: id
@@ -148,7 +148,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - createTable:
-            tableName: file_cloudservice
+            tableName: file_cloud_service
             columns:
               - column:
                   name: id
@@ -163,12 +163,38 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: cloudservice_uuid
+                  name: cloud_service_uuid
                   type: char(36)
                   constraints:
                     nullable: false
               - column:
                   name: lastUpdated
                   type: date
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: user_cloud_service
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: cloud_service_uuid
+                  type: char(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: boolean
+                  defaultValueBoolean: false
                   constraints:
                     nullable: false

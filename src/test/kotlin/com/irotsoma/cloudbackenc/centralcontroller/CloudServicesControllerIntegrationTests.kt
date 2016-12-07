@@ -67,7 +67,7 @@ open class CloudServicesControllerIntegrationTests {
         assertThat(testValue.body, containsString("[{\"uuid\":\"1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375\",\"name\":\"Google Drive\",\"token\":\"\"}]"))
     }
 
-    //below is only valid when google drive plugin is installed in extensions folder
+    //below is only valid when google drive plugin is installed in extensions folder  (make sure compatible version is included in test resource folder)
     @Test
     fun testLoginGoogleDrive(){
         val restTemplate: TestRestTemplate

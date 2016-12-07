@@ -44,7 +44,7 @@ import javax.annotation.PostConstruct
  * @author Justin Zak
  */
 @Component
-open class CloudServiceRepository : ApplicationContextAware {
+open class CloudServiceFactoryRepository : ApplicationContextAware {
     companion object { val LOG by logger() }
     //inject settings
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
@@ -53,7 +53,7 @@ open class CloudServiceRepository : ApplicationContextAware {
     //application context must be set before
     lateinit var _applicationContext : ConfigurableApplicationContext
     override fun setApplicationContext(applicationContext: ApplicationContext?) {
-        _applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw CloudServiceException("Application context in CloudServiceRepository is null.")
+        _applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw CloudServiceException("Application context in CloudServiceFactoryRepository is null.")
     }
 
     @PostConstruct

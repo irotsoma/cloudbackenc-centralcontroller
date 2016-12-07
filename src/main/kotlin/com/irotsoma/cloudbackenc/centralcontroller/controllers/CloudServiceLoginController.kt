@@ -20,7 +20,8 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
@@ -42,7 +43,7 @@ import java.util.*
  * service as identified in the URL by UUID, and returns an instance of CloudServiceUser with the userId and login
  * token.
  *
- * Use POST method to /cloudservice/login/{uuid} where {uuid} is the uuid returned from the cloud service list
+ * Use POST method to /cloud_service/login/{uuid} where {uuid} is the uuid returned from the cloud service list
  * controller for the extension.
  */
 @RestController
@@ -52,14 +53,16 @@ open class CloudServiceLoginController {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
-    private lateinit var cloudServiceRepository: CloudServiceRepository
+    private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
+    @Autowired
+    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
     @Autowired
     lateinit var messageSource: MessageSource
 
     @RequestMapping("cloud-services/login/{uuid}", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory : Class<CloudServiceFactory> = cloudServiceRepository.cloudServiceExtensions[uuid] ?: throw InvalidCloudServiceUUIDException()
+        val cloudServiceFactory : Class<CloudServiceFactory> = cloudServiceFactoryRepository.cloudServiceExtensions[uuid] ?: throw InvalidCloudServiceUUIDException()
         val authenticationService = cloudServiceFactory.newInstance().authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")

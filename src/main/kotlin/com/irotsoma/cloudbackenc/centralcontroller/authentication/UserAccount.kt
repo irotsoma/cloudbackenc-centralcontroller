@@ -40,14 +40,18 @@ class UserAccount() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
+    @Column(name="username", nullable=false)
     var username: String? = null
     //TODO: Add validation for email formatting
+    @Column(name="email", nullable=true)
     var email: String? = null
     @JsonIgnore
+    @Column(name="password", nullable=false)
     var password: String? = null
         set(value) {
             field = PASSWORD_ENCODER.encode(value)
         }
+    @Column(name="enabled", nullable=false)
     var enabled: Boolean = true
 
     @ElementCollection(fetch = FetchType.EAGER)
