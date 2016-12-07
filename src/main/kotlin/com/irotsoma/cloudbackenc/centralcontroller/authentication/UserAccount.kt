@@ -51,7 +51,7 @@ class UserAccount() {
     var enabled: Boolean = true
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = arrayOf(JoinColumn(name = "userId", referencedColumnName = "id")))
+    @CollectionTable(name = "user_roles", joinColumns = arrayOf(JoinColumn(name = "user_id", referencedColumnName = "id")))
     @Column(name="role")
     var roleList: List<String>? = null
     var roles: List<CloudBackEncRoles>?

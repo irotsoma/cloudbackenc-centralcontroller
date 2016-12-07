@@ -44,7 +44,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: userId
+                  name: user_id
                   type: int
                   constraints:
                     nullable: false
@@ -76,7 +76,7 @@ databaseChangeLog:
                   name: id
                   value: 1
               - column:
-                  name: userId
+                  name: user_id
                   value: 1
               - column:
                   name: role
@@ -100,7 +100,7 @@ databaseChangeLog:
                   name: id
                   value: 2
               - column:
-                  name: userId
+                  name: user_id
                   value: 2
               - column:
                   name: role
@@ -112,7 +112,7 @@ databaseChangeLog:
                   name: id
                   value: 3
               - column:
-                  name: userId
+                  name: user_id
                   value: 2
               - column:
                   name: role
@@ -132,18 +132,18 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: fileUuid
+                  name: file_uuid
                   type: char(36)
                   constraints:
                     unique: true
                     nullable: false
               - column:
-                  name: ownerUuid
+                  name: owner_uuid
                   type: char(36)
                   constraints:
                     nullable: false
               - column:
-                  name: ownerFileUuid
+                  name: owner_file_uuid
                   type: char(36)
                   constraints:
                     nullable: false
@@ -158,12 +158,12 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: fileId
+                  name: file_id
                   type: int
                   constraints:
                     nullable: false
               - column:
-                  name: cloudserviceUuid
+                  name: cloudservice_uuid
                   type: char(36)
                   constraints:
                     nullable: false

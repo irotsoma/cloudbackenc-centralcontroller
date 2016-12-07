@@ -12,10 +12,10 @@ class FileCloudService() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
-
+    @Column(name="file_id", nullable = false)
     var fileId: Long? = null
-
+    @Column(name="cloudservice_uuid", nullable = false)
     var cloudserviceUuid: String? = null
-
+    @Column(name="last_updated", nullable = false)
     var lastUpdated: Date? = null
 }
