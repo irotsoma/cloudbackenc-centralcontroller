@@ -193,7 +193,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: status
+                  name: logged_in
                   type: boolean
                   defaultValueBoolean: false
                   constraints:

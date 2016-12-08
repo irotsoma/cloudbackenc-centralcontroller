@@ -19,13 +19,14 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
+import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 /**
@@ -38,12 +39,42 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/cloud-services",produces = arrayOf("application/json"))
 open class CloudServicesListController {
+    companion object { val LOG by logger() }
 
     @Autowired
+    private lateinit var userAccountDetailsManager: UserAccountDetailsManager
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
+    @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
+    @Autowired
+    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
 
     @RequestMapping(method = arrayOf(RequestMethod.GET))
-    @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
-        return cloudServiceFactoryRepository.cloudServiceNames
+    @ResponseBody fun getCloudServices(@RequestParam("user") username :String?) : CloudServiceExtensionList {
+
+
+        if (username == null) {
+            return cloudServiceFactoryRepository.cloudServiceNames
+        } else {
+            //TODO: Change this case to a separate URI like /logged-in
+
+            //TODO: check permission to see if logged in user is the requested one or this is an admin
+
+
+            return AvailableCloudServices(username)
+        }
+    }
+
+
+    fun AvailableCloudServices(username: String) : CloudServiceExtensionList {
+
+        //return an empty list if the user doesn't exist
+        val user = userRepository.findByUsername(username) ?: return CloudServiceExtensionList()
+
+        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id!!)
+
+        //TODO: return only logged in cloud services
+        return CloudServiceExtensionList()
     }
 }
