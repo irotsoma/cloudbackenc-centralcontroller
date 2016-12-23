@@ -23,6 +23,7 @@ class FileObject() {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_id", referencedColumnName = "id")))
-    var cloudServiceList: List<FileCloudService>? = null
+    @OrderBy("last_updated DESC")
+    var cloudServiceFileList: List<CloudServiceFileObject>? = null
 
 }

@@ -86,6 +86,7 @@ open class CloudServiceLoginController {
                 CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.PROCESSING
                 else -> HttpStatus.BAD_REQUEST
             }
+        //TODO: update userCloudServiceRepository
         return ResponseEntity(response, status)
     }
 }
