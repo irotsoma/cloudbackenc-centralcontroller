@@ -4,9 +4,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.files.CloudServiceFileRepository
-import com.irotsoma.cloudbackenc.centralcontroller.files.CloudServiceFilesSettings
-import com.irotsoma.cloudbackenc.centralcontroller.files.FileRepository
+import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.FileMetadata
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,14 +31,14 @@ open class FileController {
 
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @ResponseBody fun receiveNewFile(@RequestParam("metadata") request: FileMetadata, @RequestParam("file") file: MultipartFile){
-        val existingFile = fileRepository.findByOwnerUuidAndOwnerFileUuid(request.senderId.toString(),request.senderFileId.toString())
+        var fileObject = fileRepository.findByOwnerUuidAndOwnerFileUuid(request.senderId.toString(),request.senderFileId.toString())
 
-        if (existingFile!=null){
-            if (((existingFile.cloudServiceFileList?.size ?:0) > cloudServiceFilesSettings.maxFileVersions) && ((existingFile.cloudServiceFileList?.size ?: 0) !=0) ) {
+        if (fileObject!=null){
+            if (((fileObject.cloudServiceFileList?.size ?:0) > cloudServiceFilesSettings.maxFileVersions) && ((fileObject.cloudServiceFileList?.size ?: 0) !=0) ) {
                 //if there are already too many file versions, then delete the oldest one(s) (last one(s) due to order by statement)
-                for (x in existingFile.cloudServiceFileList!!.size - 1 downTo cloudServiceFilesSettings.maxFileVersions) {
+                for (x in fileObject.cloudServiceFileList!!.size - 1 downTo cloudServiceFilesSettings.maxFileVersions) {
                     //find the cloud service file object id
-                    val deleteItem = existingFile.cloudServiceFileList!![x].id ?: -1
+                    val deleteItem = fileObject.cloudServiceFileList!![x].id ?: -1
                     if (deleteItem > 0) {
                         //find the object to be deleted
                         val fileToDelete = cloudServiceFileRepository.findById(deleteItem)
@@ -69,14 +67,40 @@ open class FileController {
                         }
                     }
                 }
-
             }
 
         } else {
-            //TODO: create new entry in file repository
+            fileObject = FileObject()
+            fileObject.fileUuid = UUID.randomUUID().toString()
+            fileObject.ownerUuid = request.senderId.toString()
+            fileObject.ownerFileUuid = request.senderFileId.toString()
+            fileRepository.saveAndFlush(fileObject)
         }
-        //TODO: save file as temp file
-        //TODO: upload file using file distributor (async)
+        val fileDistributor = FileDistributor()
+        val serviceToSendTo = fileDistributor.determineBestLocation(file.size)
+        val cloudServiceFactory = cloudServiceFactoryRepository.cloudServiceExtensions[serviceToSendTo]
+
+
+        if (cloudServiceFactory == null) {
+            //TODO: handle case where plugin is not installed or uuid is not valid
+
+
+        } else {
+            val tempFile = createTempFile(fileObject.fileUuid!!)
+            file.transferTo(tempFile)
+            //Make the path from the fileUuid + version number + the file Uuid used by the sender
+            val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"
+            //TODO: make these async
+            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, cloudServiceFilePath)
+            if (uploadSuccess){
+                val cloudServiceFile = CloudServiceFileObject(fileObject.id!!, serviceToSendTo.toString(), cloudServiceFilePath,Date())
+                cloudServiceFileRepository.save(cloudServiceFile)
+            }
+            tempFile.deleteOnExit()
+        }
+
+
+
 
 
 
