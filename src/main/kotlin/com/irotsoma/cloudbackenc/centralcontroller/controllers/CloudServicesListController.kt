@@ -51,7 +51,7 @@ open class CloudServicesListController {
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
 
     @RequestMapping(method = arrayOf(RequestMethod.GET))
-    @ResponseBody fun getCloudServices(@RequestParam("user") username :String?) : CloudServiceExtensionList {
+    @ResponseBody fun getCloudServices(@RequestParam("user", required=false) username :String?) : CloudServiceExtensionList {
 
 
         if (username == null) {

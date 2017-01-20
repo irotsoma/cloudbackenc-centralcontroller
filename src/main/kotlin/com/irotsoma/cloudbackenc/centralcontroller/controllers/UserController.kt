@@ -40,7 +40,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import javax.servlet.http.HttpServletResponse
-import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalSupertypes
+import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalClassPartsProvider
 
 
 @RestController
@@ -55,7 +55,7 @@ open class UserController {
 
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalSupertypes.None>{
+    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
 
         try {
@@ -124,7 +124,7 @@ open class UserController {
 
     @RequestMapping("/{userId}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun deleteUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalSupertypes.None>{
+    fun deleteUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication.name
 
 
@@ -133,7 +133,7 @@ open class UserController {
     }
     @RequestMapping("/{userId}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun getUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalSupertypes.None>{
+    fun getUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication.name
 
 
