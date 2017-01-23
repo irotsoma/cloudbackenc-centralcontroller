@@ -14,7 +14,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/files")
-open class FileController {
+class FileController {
     companion object { val LOG by logger() }
 
     @Autowired
@@ -70,10 +70,7 @@ open class FileController {
             }
 
         } else {
-            fileObject = FileObject()
-            fileObject.fileUuid = UUID.randomUUID().toString()
-            fileObject.ownerUuid = request.senderId.toString()
-            fileObject.ownerFileUuid = request.senderFileId.toString()
+            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), ownerUuid = request.senderId.toString(), ownerFileUuid = request.senderFileId.toString(), cloudServiceFileList = null)
             fileRepository.saveAndFlush(fileObject)
         }
         val fileDistributor = FileDistributor()
@@ -86,7 +83,7 @@ open class FileController {
 
 
         } else {
-            val tempFile = createTempFile(fileObject.fileUuid!!)
+            val tempFile = createTempFile(fileObject.fileUuid)
             file.transferTo(tempFile)
             //Make the path from the fileUuid + version number + the file Uuid used by the sender
             val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"

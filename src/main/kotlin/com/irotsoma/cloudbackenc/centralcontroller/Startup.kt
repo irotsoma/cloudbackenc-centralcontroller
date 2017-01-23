@@ -21,12 +21,12 @@ package com.irotsoma.cloudbackenc.centralcontroller
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.system.ApplicationPidFileWriter
+
 //import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer
 
 @SpringBootApplication
 //@EnableEurekaServer
-open class CentralController
+class CentralController
 
 fun main(args: Array<String>) {
     val centralController = SpringApplication(CentralController::class.java, *args)

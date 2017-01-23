@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("/cloud-services",produces = arrayOf("application/json"))
-open class CloudServicesListController {
+class CloudServicesListController {
     companion object { val LOG by logger() }
 
     @Autowired

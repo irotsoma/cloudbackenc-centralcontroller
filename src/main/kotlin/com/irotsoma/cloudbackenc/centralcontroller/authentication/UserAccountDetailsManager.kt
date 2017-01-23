@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component
  * @author Justin Zak
  */
 @Component
-open class UserAccountDetailsManager : UserDetailsService {
+class UserAccountDetailsManager : UserDetailsService {
     companion object { val LOG by logger() }
 
     lateinit var userRepository: UserAccountRepository

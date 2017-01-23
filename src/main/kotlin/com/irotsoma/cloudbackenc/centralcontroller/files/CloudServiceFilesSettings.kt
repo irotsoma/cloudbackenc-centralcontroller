@@ -15,6 +15,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties("cloudservicefiles")
-open class CloudServiceFilesSettings{
+class CloudServiceFilesSettings{
     var maxFileVersions: Int = 0
 }

@@ -45,7 +45,7 @@ import kotlin.reflect.jvm.internal.impl.serialization.deserialization.Additional
 
 @RestController
 @RequestMapping("/users")
-open class UserController {
+class UserController {
     companion object { val LOG by logger() }
 
     @Autowired

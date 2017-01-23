@@ -33,7 +33,7 @@ import java.util.*
  */
 
 @Configuration
-open class CustomWebMvcConfigurerAdapter : WebMvcConfigurerAdapter() {
+class CustomWebMvcConfigurerAdapter : WebMvcConfigurerAdapter() {
 
     //internationalization beans
     @Bean

@@ -32,7 +32,12 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "user_account")
-class UserAccount() {
+class UserAccount(@Column(name = "username", nullable = false) var username: String,
+                  password: String,
+                  //TODO: Add validation for email formatting
+                  @Column(name = "email", nullable = true) var email: String?,
+                  @Column(name = "enabled", nullable = false) var enabled: Boolean,
+                  roles: List<CloudBackEncRoles>) {
     companion object {
         val PASSWORD_ENCODER: PasswordEncoder = BCryptPasswordEncoder()
     }
@@ -40,24 +45,16 @@ class UserAccount() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
-    @Column(name="username", nullable=false)
-    var username: String? = null
-    //TODO: Add validation for email formatting
-    @Column(name="email", nullable=true)
-    var email: String? = null
     @JsonIgnore
     @Column(name="password", nullable=false)
-    var password: String? = null
+    var password: String? = password
         set(value) {
             field = PASSWORD_ENCODER.encode(value)
         }
-    @Column(name="enabled", nullable=false)
-    var enabled: Boolean = true
-
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = arrayOf(JoinColumn(name = "user_id", referencedColumnName = "id")))
     @Column(name="role")
-    var roleList: List<String>? = null
+    var roleList: List<String>? = roles.map{it.name}
     var roles: List<CloudBackEncRoles>?
         set(value){
             roleList = value?.map{it.name}
@@ -66,13 +63,6 @@ class UserAccount() {
             return roleList?.map{ CloudBackEncRoles.valueOf(it)}
         }
 
-    constructor(username: String, password: String, email: String?, enabled: Boolean?, roles: List<CloudBackEncRoles>): this() {
-        this.username = username
-        this.password = password
-        this.email = email
-        this.roles = roles
-        this.enabled = enabled ?: true
-    }
     fun cloudBackEncUser(): CloudBackEncUser{
         return CloudBackEncUser(username!!, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
     }

@@ -47,7 +47,7 @@ import java.util.*
  * controller for the extension.
  */
 @RestController
-open class CloudServiceLoginController {
+class CloudServiceLoginController {
     companion object { val LOG by logger() }
 
     @Autowired

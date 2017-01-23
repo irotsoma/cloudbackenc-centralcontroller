@@ -15,7 +15,7 @@ import java.util.*
 * @author Justin Zak
 */
 @Component
-open class FileDistributor {
+class FileDistributor {
     @Autowired
     lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
 

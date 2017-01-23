@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties("cloudservices")
-open class CloudServicesSettings {
+class CloudServicesSettings {
 
     lateinit var directory: String
     lateinit var configFileName: String

@@ -44,7 +44,7 @@ import javax.annotation.PostConstruct
  * @author Justin Zak
  */
 @Component
-open class CloudServiceFactoryRepository : ApplicationContextAware {
+class CloudServiceFactoryRepository : ApplicationContextAware {
     companion object { val LOG by logger() }
     //inject settings
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
