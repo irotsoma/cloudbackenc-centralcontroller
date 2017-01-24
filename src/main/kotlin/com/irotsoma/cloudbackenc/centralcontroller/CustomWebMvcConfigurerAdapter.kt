@@ -37,14 +37,14 @@ class CustomWebMvcConfigurerAdapter : WebMvcConfigurerAdapter() {
 
     //internationalization beans
     @Bean
-    open fun localeResolver(): LocaleResolver {
+    fun localeResolver(): LocaleResolver {
         val slr = SessionLocaleResolver()
         slr.setDefaultLocale(Locale.US)
         return slr
     }
 
     @Bean
-    open fun localeChangeInterceptor(): LocaleChangeInterceptor {
+    fun localeChangeInterceptor(): LocaleChangeInterceptor {
         val localeChangeInterceptor = LocaleChangeInterceptor()
         localeChangeInterceptor.paramName = "locale"
         return localeChangeInterceptor
