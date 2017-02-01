@@ -30,15 +30,19 @@ import com.irotsoma.cloudbackenc.common.logger
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import javax.mail.MessagingException
 import javax.servlet.http.HttpServletResponse
 import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalClassPartsProvider
 
@@ -48,6 +52,9 @@ import kotlin.reflect.jvm.internal.impl.serialization.deserialization.Additional
 class UserController {
     companion object { val LOG by logger() }
 
+    @Suppress("SpringKotlinAutowiring") //TODO: see if this can be removed.  Seems to be giving autowired error, but it works fine
+    @Autowired
+    private lateinit var javaMailSender: JavaMailSender
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
@@ -57,7 +64,7 @@ class UserController {
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
-
+        val locale = LocaleContextHolder.getLocale()
         try {
             val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
             if (!currentUser.authorities.contains(GrantedAuthority { CloudBackEncRoles.ROLE_ADMIN.name })){
@@ -74,15 +81,30 @@ class UserController {
 
         //TODO: check format of user ID which must contain only certain characters (probably alphanumeric plus _ and -)
         //TODO: check password format based on configurable pattern in properties file
-
-        if (!EmailValidator.getInstance().isValid(user.email)){
-            throw InvalidEmailAddressException()
+        if (user.email != null) {
+            if (!EmailValidator.getInstance().isValid(user.email)) {
+                throw InvalidEmailAddressException()
+            }
         }
-
         //create and save new user
         val newUserAccount = UserAccount(user.userId, user.password,user.email, user.enabled, user.roles)
         userAccountDetailsManager.userRepository.saveAndFlush(newUserAccount)
         //TODO: email user
+        if (user.email != null) {
+            val mail = javaMailSender.createMimeMessage()
+            try {
+                val helper = MimeMessageHelper(mail, true)
+                helper.setTo(user.email)
+                helper.setSubject(messageSource.getMessage("centralcontroller.user.controller.registration.email.subject", null, locale))
+                helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.userId), locale))
+            } catch (e: MessagingException) {
+                e.printStackTrace() //TODO: create a custom exception here
+            } finally {
+            }
+            javaMailSender.send(mail)
+        }
+        //TODO: add email validation step
+
         //return the path to the user id
         val responseLocation = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(user.userId)
         val headers = HttpHeaders()
