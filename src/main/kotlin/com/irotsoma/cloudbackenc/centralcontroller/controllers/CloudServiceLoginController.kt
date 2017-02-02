@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
@@ -75,6 +76,7 @@ class CloudServiceLoginController {
         }
         //launch extension's login service
         try {
+            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener()
             response = authenticationService.login(currentUser.cloudBackEncUser(), user)
         } catch (e:Exception ){
             LOG.debug("${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}")
@@ -86,7 +88,7 @@ class CloudServiceLoginController {
                 CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.PROCESSING
                 else -> HttpStatus.BAD_REQUEST
             }
-        //TODO: update userCloudServiceRepository
+
         return ResponseEntity(response, status)
     }
 }

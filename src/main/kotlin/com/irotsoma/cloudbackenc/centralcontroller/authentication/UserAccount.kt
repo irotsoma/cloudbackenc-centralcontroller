@@ -64,6 +64,6 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
         }
 
     fun cloudBackEncUser(): CloudBackEncUser{
-        return CloudBackEncUser(username!!, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
+        return CloudBackEncUser(username, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
     }
 }

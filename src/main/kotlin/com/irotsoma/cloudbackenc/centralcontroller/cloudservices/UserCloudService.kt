@@ -26,5 +26,5 @@ class UserCloudService(cloudServiceUuid: String,
     var userId: Long? = userId
 
     @Column(name="logged_in",nullable=false)
-    var LoggedIn: Boolean = LoggedIn
+    var loggedIn: Boolean = LoggedIn
 }

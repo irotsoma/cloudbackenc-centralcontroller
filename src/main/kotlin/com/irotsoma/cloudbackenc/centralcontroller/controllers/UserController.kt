@@ -75,7 +75,7 @@ class UserController {
         }
 
         //check to see if there is a duplicate user
-        if (userAccountDetailsManager.userRepository.findByUsername(user.userId) != null){
+        if (userAccountDetailsManager.userRepository.findByUsername(user.username) != null){
             throw DuplicateUserException()
         }
 
@@ -87,7 +87,7 @@ class UserController {
             }
         }
         //create and save new user
-        val newUserAccount = UserAccount(user.userId, user.password,user.email, user.enabled, user.roles)
+        val newUserAccount = UserAccount(user.username, user.password,user.email, user.enabled, user.roles)
         userAccountDetailsManager.userRepository.saveAndFlush(newUserAccount)
         //TODO: email user
         if (user.email != null) {
@@ -96,7 +96,7 @@ class UserController {
                 val helper = MimeMessageHelper(mail, true)
                 helper.setTo(user.email)
                 helper.setSubject(messageSource.getMessage("centralcontroller.user.controller.registration.email.subject", null, locale))
-                helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.userId), locale))
+                helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.username), locale))
             } catch (e: MessagingException) {
                 e.printStackTrace() //TODO: create a custom exception here
             } finally {
@@ -106,7 +106,7 @@ class UserController {
         //TODO: add email validation step
 
         //return the path to the user id
-        val responseLocation = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(user.userId)
+        val responseLocation = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(user.username)
         val headers = HttpHeaders()
         headers.location = responseLocation.toUri()
         return ResponseEntity(headers, HttpStatus.CREATED)
@@ -117,13 +117,13 @@ class UserController {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         //authorized user requesting the update must either be the user in the request or be an admin
-        if ((updatedUser.userId != authorizedUser.name) || (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
+        if ((updatedUser.username != authorizedUser.name) || (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
         {
             return ResponseEntity(null, HttpStatus.NOT_FOUND)
         }
         //
         try{
-            val userToUpdate = userAccountDetailsManager.userRepository.findByUsername(updatedUser.userId) ?: throw CloudBackEncUserNotFound()
+            val userToUpdate = userAccountDetailsManager.userRepository.findByUsername(updatedUser.username) ?: throw CloudBackEncUserNotFound()
             if (updatedUser.password != CloudBackEncUser.PASSWORD_MASKED){
                 userToUpdate.password = updatedUser.password
             }
