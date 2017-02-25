@@ -22,7 +22,6 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
@@ -56,8 +55,6 @@ class CloudServiceLoginController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
-    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
-    @Autowired
     lateinit var messageSource: MessageSource
 
     @RequestMapping("cloud-services/login/{uuid}", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
@@ -76,8 +73,8 @@ class CloudServiceLoginController {
         }
         //launch extension's login service
         try {
-            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener()
-            response = authenticationService.login(currentUser.cloudBackEncUser(), user)
+            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser())
+            response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
             LOG.debug("${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}")
             throw CloudServiceException(e.message, e)

@@ -20,7 +20,7 @@ buildscript {
     ext.tornadofxVersion = '1.6.0'
     ext.junitVersion = '4.12'
     ext.log4jVersion = '2.7'
-    ext.kotlinVersion = '1.1.0-beta-22'
+    ext.kotlinVersion = '1.1.0-rc-91'
     ext.apacheCommonsValidatorVersion = '1.5.1'
     ext.apacheCommonsCompressionVersion = '1.13'
     ext.jacksonVersion = '2.8.6'
@@ -88,15 +88,15 @@ repositories {
     maven {url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'}
 }
 
-//if (!isReleaseVersion) {
+if (!isReleaseVersion) {
     configurations.all {
         // check for updates every build
         resolutionStrategy{
-            cacheDynamicVersionsFor 10*60, 'seconds'
+            cacheDynamicVersionsFor 0, 'seconds'
             cacheChangingModulesFor 0, 'seconds'
         }
     }
-//}
+}
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.apache.logging.log4j:log4j-1.2-api:$log4jVersion"

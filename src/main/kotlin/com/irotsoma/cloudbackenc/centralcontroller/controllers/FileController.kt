@@ -3,11 +3,14 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.FileMetadata
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
@@ -29,8 +32,14 @@ class FileController {
     @Autowired
     lateinit var fileRepository: FileRepository
 
+    @Autowired
+    private lateinit var userAccountDetailsManager: UserAccountDetailsManager
+
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @ResponseBody fun receiveNewFile(@RequestParam("metadata") request: FileMetadata, @RequestParam("file") file: MultipartFile){
+
+        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         var fileObject = fileRepository.findByOwnerUuidAndOwnerFileUuid(request.senderId.toString(),request.senderFileId.toString())
 
         if (fileObject!=null){
@@ -57,18 +66,16 @@ class FileController {
                                 //delete the file using the plugin service
 
                                 //TODO: make these async
-                                val deleteSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.delete(fileToDelete.path!!)
+                                val deleteSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
                                 if (deleteSuccess) {
                                     //delete the entry from the database
                                     cloudServiceFileRepository.delete(deleteItem)
                                 }
-
                             }
                         }
                     }
                 }
             }
-
         } else {
             fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), ownerUuid = request.senderId.toString(), ownerFileUuid = request.senderFileId.toString(), cloudServiceFileList = null)
             fileRepository.saveAndFlush(fileObject)
@@ -88,7 +95,7 @@ class FileController {
             //Make the path from the fileUuid + version number + the file Uuid used by the sender
             val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"
             //TODO: make these async
-            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, cloudServiceFilePath)
+            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, cloudServiceFilePath, currentUser.cloudBackEncUser())
             if (uploadSuccess){
                 val cloudServiceFile = CloudServiceFileObject(fileObject.id!!, serviceToSendTo.toString(), cloudServiceFilePath,Date())
                 cloudServiceFileRepository.save(cloudServiceFile)

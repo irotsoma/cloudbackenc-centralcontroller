@@ -168,7 +168,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: path
+                  name: locator
                   type: varchar(255)
                   constraints:
                     nullable: false

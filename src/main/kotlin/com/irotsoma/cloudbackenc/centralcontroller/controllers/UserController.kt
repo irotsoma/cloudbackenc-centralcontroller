@@ -155,7 +155,7 @@ class UserController {
     }
     @RequestMapping("/{userId}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun getUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
+    fun getUser(@PathVariable userId: String?, @RequestBody user:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication.name
 
 

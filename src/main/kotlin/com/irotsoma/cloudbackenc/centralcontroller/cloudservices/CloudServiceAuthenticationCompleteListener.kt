@@ -9,6 +9,7 @@ import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServi
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.*
 
 /**
  *
@@ -16,14 +17,13 @@ import org.springframework.stereotype.Component
  * @author Justin Zak
  */
 @Component
-class CloudServiceAuthenticationCompleteListener :CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser) :CloudServiceAuthenticationRefreshListener {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
-    override var user: CloudBackEncUser? = null
 
-    override fun onChange(newState: CloudServiceUser.STATE) {
+    override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         //TODO implement updating userCloudServiceRepository when auth finishes
 
 
