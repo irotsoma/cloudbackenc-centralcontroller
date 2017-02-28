@@ -17,11 +17,15 @@ import java.util.*
  * @author Justin Zak
  */
 @Component
-class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser) :CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener() :CloudServiceAuthenticationRefreshListener {
+    override var user: CloudBackEncUser? = null
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
+    constructor(user: CloudBackEncUser):this(){
+        this.user = user
+    }
 
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         //TODO implement updating userCloudServiceRepository when auth finishes

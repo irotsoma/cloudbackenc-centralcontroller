@@ -38,15 +38,15 @@ import org.springframework.stereotype.Component
  * @author Justin Zak
  */
 @Component
-class UserAccountDetailsManager : UserDetailsService {
+open class UserAccountDetailsManager : UserDetailsService {
     companion object { val LOG by logger() }
-
+    @Autowired
     lateinit var userRepository: UserAccountRepository
 
-    @Autowired
-    constructor(userRepository: UserAccountRepository){
-        this.userRepository = userRepository
-    }
+
+//    constructor(userRepository: UserAccountRepository){
+//        this.userRepository = userRepository
+//    }
 
     override fun loadUserByUsername(username: String): UserDetails {
         val userAccount = userRepository.findByUsername(username) ?: throw UsernameNotFoundException(" '$username'")

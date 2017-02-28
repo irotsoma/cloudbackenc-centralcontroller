@@ -96,7 +96,7 @@ class FileController {
             val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"
             //TODO: make these async
             val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, cloudServiceFilePath, currentUser.cloudBackEncUser())
-            if (uploadSuccess){
+            if (uploadSuccess != null){
                 val cloudServiceFile = CloudServiceFileObject(fileObject.id!!, serviceToSendTo.toString(), cloudServiceFilePath,Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
