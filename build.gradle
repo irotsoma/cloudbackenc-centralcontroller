@@ -20,7 +20,7 @@ buildscript {
     ext.tornadofxVersion = '1.6.0'
     ext.junitVersion = '4.12'
     ext.log4jVersion = '2.7'
-    ext.kotlinVersion = '1.1.0-rc-91'
+    ext.kotlinVersion = '1.1.0'
     ext.apacheCommonsValidatorVersion = '1.5.1'
     ext.apacheCommonsCompressionVersion = '1.13'
     ext.jacksonVersion = '2.8.6'
@@ -31,10 +31,6 @@ buildscript {
         mavenCentral()
         jcenter()
         maven {url 'http://repo.spring.io/plugins-release'}
-
-        //kotlin 1.1 EAP
-        maven {url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'}
-
     }
     dependencies {
         classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
@@ -83,9 +79,6 @@ repositories {
             url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
     }
-
-    //kotlin 1.1 EAP
-    maven {url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'}
 }
 
 if (!isReleaseVersion) {
