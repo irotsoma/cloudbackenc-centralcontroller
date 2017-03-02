@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 /**
- *
+ * Settings related to cloud service files.
  *
  * @author Justin Zak
  */

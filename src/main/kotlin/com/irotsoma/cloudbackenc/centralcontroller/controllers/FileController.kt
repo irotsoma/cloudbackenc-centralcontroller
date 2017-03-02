@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.nio.file.Paths
 import java.util.*
 
 @RestController
@@ -95,7 +96,7 @@ class FileController {
             //Make the path from the fileUuid + version number + the file Uuid used by the sender
             val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"
             //TODO: make these async
-            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, cloudServiceFilePath, currentUser.cloudBackEncUser())
+            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
                 val cloudServiceFile = CloudServiceFileObject(fileObject.id!!, serviceToSendTo.toString(), cloudServiceFilePath,Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
