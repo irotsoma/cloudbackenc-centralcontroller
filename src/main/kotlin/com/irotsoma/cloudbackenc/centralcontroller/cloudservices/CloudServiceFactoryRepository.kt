@@ -103,7 +103,7 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
                         //if the UUID is not in the map add it
                         factoryClasses.put(cloudServiceUUID, VersionedExtensionFactoryClass("${mapperData.packageName}.${mapperData.factoryClass}", mapperData.releaseVersion))
                         jarURLs.put(cloudServiceUUID,jar.toURI().toURL())
-                        cloudServiceNames.add(CloudServiceExtension(cloudServiceUUID, mapperData.serviceName))
+                        cloudServiceNames.add(CloudServiceExtension(cloudServiceUUID, mapperData.serviceName, mapperData.requiresUsername, mapperData.requiresPassword))
                     }
                 }
             } catch (e: MissingKotlinParameterException) {
