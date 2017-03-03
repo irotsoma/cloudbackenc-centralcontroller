@@ -106,7 +106,6 @@ dependencies {
     //common classes
     compile "com.irotsoma.cloudbackenc:common:$commonVersion"
     compile "com.irotsoma.cloudbackenc.common:cloudservicesserviceinterface:$commonVersion"
-    //compile "com.irotsoma.cloudbackenc.common:encryptionserviceinterface:$commonVersion"
     //jackson
     compile 'com.fasterxml.jackson.module:jackson-module-kotlin'
     compile 'com.fasterxml.jackson.core:jackson-core'
