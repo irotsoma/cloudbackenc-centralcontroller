@@ -18,14 +18,14 @@ buildscript {
     ext.commonVersion = '0.2-SNAPSHOT'
     ext.springBootVersion = '1.4.3.RELEASE'
     ext.tornadofxVersion = '1.6.0'
-    ext.junitVersion = '4.12'
-    ext.log4jVersion = '2.7'
     ext.kotlinVersion = '1.1.0'
     ext.apacheCommonsValidatorVersion = '1.5.1'
     ext.apacheCommonsCompressionVersion = '1.13'
     ext.jacksonVersion = '2.8.6'
     ext.dokkaVersion = '0.9.13'
     ext.liquibaseGradleVersion = '1.2.1'
+    ext.jjwtVersion = '0.7.0'
+    ext.kotlinLoggingVersion = '1.4.3'
 
     repositories {
         mavenCentral()
@@ -92,16 +92,17 @@ if (!isReleaseVersion) {
 }
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    compile "org.apache.logging.log4j:log4j-1.2-api:$log4jVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     //spring boot
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-logging'
+    compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-security'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.boot:spring-boot-starter-mail'
     compile 'org.springframework.boot:spring-boot-devtools'
+    compile 'org.springframework.security.oauth:spring-security-oauth2'
     optional 'org.springframework.boot:spring-boot-configuration-processor'
     //common classes
     compile "com.irotsoma.cloudbackenc:common:$commonVersion"
@@ -117,9 +118,11 @@ dependencies {
     compile 'org.liquibase:liquibase-core'
     //apache commons
     compile "commons-validator:commons-validator:$apacheCommonsValidatorVersion"
+    //logging
+    compile "io.github.microutils:kotlin-logging:$kotlinLoggingVersion"
     //test
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile "junit:junit:$junitVersion"
+
 
 }
 sourceSets {

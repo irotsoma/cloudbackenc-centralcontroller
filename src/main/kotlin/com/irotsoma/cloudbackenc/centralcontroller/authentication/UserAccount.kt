@@ -22,13 +22,14 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import javax.persistence.*
 
 /**
  * User Account Object
+ *
+ * @author Justin Zak
  */
 @Entity
 @Table(name = "user_account")
@@ -62,7 +63,6 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
         get(){
             return roleList?.map{ CloudBackEncRoles.valueOf(it)}
         }
-
     fun cloudBackEncUser(): CloudBackEncUser{
         return CloudBackEncUser(username, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
     }

@@ -26,7 +26,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.Duplic
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -50,7 +50,8 @@ import kotlin.reflect.jvm.internal.impl.serialization.deserialization.Additional
 @RestController
 @RequestMapping("/users")
 class UserController {
-    companion object { val LOG by logger() }
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
 
     @Suppress("SpringKotlinAutowiring") //TODO: see if this can be removed.  Seems to be giving autowired error, but it works fine
     @Autowired

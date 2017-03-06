@@ -20,7 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
@@ -39,14 +39,10 @@ import org.springframework.stereotype.Component
  */
 @Component
 open class UserAccountDetailsManager : UserDetailsService {
-    companion object { val LOG by logger() }
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
     @Autowired
     lateinit var userRepository: UserAccountRepository
-
-
-//    constructor(userRepository: UserAccountRepository){
-//        this.userRepository = userRepository
-//    }
 
     override fun loadUserByUsername(username: String): UserDetails {
         val userAccount = userRepository.findByUsername(username) ?: throw UsernameNotFoundException(" '$username'")

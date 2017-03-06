@@ -33,12 +33,17 @@ import javax.servlet.http.HttpServletResponse
  */
 @ControllerAdvice
 class CloudServiceExceptionHandler : ResponseEntityExceptionHandler() {
-
+    /**
+     * Generates a message for instances of [CloudServiceException] thrown by any REST controllers.
+     */
     @ExceptionHandler(CloudServiceException::class)
     fun handleCloudServiceException(response: HttpServletResponse, exception: CloudServiceException) : String?{
         response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.message)
         return exception.message
     }
+    /**
+     * Generates a localized message for instances of [RestException] thrown by any REST controllers.
+     */
     @ExceptionHandler(RestException::class)
     fun handleRestException(response: HttpServletResponse, exception: RestException) : String?{
         response.sendError(exception.type.httpStatusCode(),exception.type.friendlyMessage(LocaleContextHolder.getLocale()))

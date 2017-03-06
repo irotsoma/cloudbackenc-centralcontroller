@@ -25,7 +25,7 @@ import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.irotsoma.cloudbackenc.common.VersionedExtensionFactoryClass
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.*
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -45,7 +45,8 @@ import javax.annotation.PostConstruct
  */
 @Component
 class CloudServiceFactoryRepository : ApplicationContextAware {
-    companion object { val LOG by logger() }
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
     //inject settings
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
     var cloudServiceExtensions  = emptyMap<UUID,Class<CloudServiceFactory>>()
@@ -65,26 +66,26 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
         //internal resources extension directory (packaged extensions or test extensions)
         val resourcesExtensionsDirectory: File? = try{ File(javaClass.classLoader?.getResource("extensions")?.file) } catch(e:Exception){ null }
         if ((!extensionsDirectory.isDirectory || !extensionsDirectory.canRead()) && ((!(resourcesExtensionsDirectory?.isDirectory ?: false) || !(resourcesExtensionsDirectory?.canRead() ?: false)))) {
-            LOG.warn("Extensions directory is missing or unreadable.")
-            LOG.warn("Config directory: ${extensionsDirectory.absolutePath}")
-            LOG.warn("Resource directory: ${resourcesExtensionsDirectory?.absolutePath}")
+            logger.warn{"Extensions directory is missing or unreadable."}
+            logger.warn{"Config directory: ${extensionsDirectory.absolutePath}"}
+            logger.warn{"Resource directory: ${resourcesExtensionsDirectory?.absolutePath}"}
             return
         }
-        LOG.debug("Config extension directory:  ${extensionsDirectory.absolutePath}")
-        LOG.debug("Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}")
+        logger.trace{"Config extension directory:  ${extensionsDirectory.absolutePath}"}
+        logger.trace{"Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}"}
         val jarURLs : HashMap<UUID,URL> = HashMap()
         val factoryClasses: HashMap<UUID, VersionedExtensionFactoryClass> = HashMap()
 
         //cycle through all files in the extensions directories
         for (jar in (extensionsDirectory.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
             try {
-                LOG.debug("Loading extension jar file: ${jar.absolutePath}")
+                logger.info{"Loading extension jar file: ${jar.absolutePath}"}
 
                 val jarFile = JarFile(jar)
                 //read config file from jar if present
                 val jarFileEntry = jarFile.getEntry(cloudServicesSettings.configFileName)
                 if (jarFileEntry == null) {
-                    LOG.debug("Extension missing config file named ${cloudServicesSettings.configFileName}. Skipping jar file: ${jar.absolutePath}")
+                    logger.warn{"Extension missing config file named ${cloudServicesSettings.configFileName}. Skipping jar file: ${jar.absolutePath}"}
                 }
                 else {
                     //get Json config file data
@@ -107,9 +108,9 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
                     }
                 }
             } catch (e: MissingKotlinParameterException) {
-                LOG.warn("Cloud service extension configuration file is missing a required field.  This extension will be unavailable: ${jar.name}.  Error Message: ${e.message}")
+                logger.warn{"Cloud service extension configuration file is missing a required field.  This extension will be unavailable: ${jar.name}.  Error Message: ${e.message}"}
             } catch (e: Exception) {
-                LOG.warn("Error processing cloud service extension file. This extension will be unavailable: ${jar.name}.   Error Message: ${e.message}")
+                logger.warn{"Error processing cloud service extension file. This extension will be unavailable: ${jar.name}.   Error Message: ${e.message}"}
             }
         }
         //create a class loader with all of the jars
@@ -124,10 +125,10 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
                     cloudServiceExtensions = cloudServiceExtensions.plus(Pair(key, @Suppress("UNCHECKED_CAST")(gdClass as Class<CloudServiceFactory>)))
                 }
                 else {
-                    LOG.warn("Error loading cloud service extension: Factory is not an instance of CloudServiceFactory: $value" )
+                    logger.warn{"Error loading cloud service extension: Factory is not an instance of CloudServiceFactory: $value" }
                 }
             } catch(e: ClassNotFoundException){
-                LOG.warn("Error loading cloud service extension: $value: ${e.message}")
+                logger.warn{"Error loading cloud service extension: $value: ${e.message}"}
             }
 
         }

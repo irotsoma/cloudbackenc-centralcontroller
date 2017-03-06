@@ -8,7 +8,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFac
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.FileMetadata
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
@@ -19,8 +19,8 @@ import java.util.*
 @RestController
 @RequestMapping("/files")
 class FileController {
-    companion object { val LOG by logger() }
-
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
     @Autowired
     lateinit var cloudServiceFilesSettings: CloudServiceFilesSettings
 

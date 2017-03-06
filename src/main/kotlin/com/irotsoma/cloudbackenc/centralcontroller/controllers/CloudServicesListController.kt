@@ -24,7 +24,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountRep
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -39,7 +39,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/cloud-services",produces = arrayOf("application/json"))
 class CloudServicesListController {
-    companion object { val LOG by logger() }
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager

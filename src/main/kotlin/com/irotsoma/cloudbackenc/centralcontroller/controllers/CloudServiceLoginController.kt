@@ -26,7 +26,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.Invali
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
-import com.irotsoma.cloudbackenc.common.logger
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -48,7 +48,8 @@ import java.util.*
  */
 @RestController
 class CloudServiceLoginController {
-    companion object { val LOG by logger() }
+    /** kotlin-logging implementation*/
+    companion object: KLogging()
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
@@ -69,14 +70,14 @@ class CloudServiceLoginController {
         try {
             URL(user.authorizationCallbackURL)
         } catch (e: MalformedURLException){
-            LOG.debug(messageSource.getMessage("centralcontroller.cloudservices.error.callback.invalid", null, locale))
+            logger.warn{messageSource.getMessage("centralcontroller.cloudservices.error.callback.invalid", null, locale)}
         }
         //launch extension's login service
         try {
             authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser())
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
-            LOG.debug("${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}")
+            logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}"}
             throw CloudServiceException(e.message, e)
         }
         val status: HttpStatus =
