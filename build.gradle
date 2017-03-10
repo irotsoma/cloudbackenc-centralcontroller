@@ -16,15 +16,13 @@
  */
 buildscript {
     ext.commonVersion = '0.2-SNAPSHOT'
-    ext.springBootVersion = '1.4.3.RELEASE'
+    ext.springBootVersion = '1.5.2.RELEASE'
     ext.tornadofxVersion = '1.6.0'
     ext.kotlinVersion = '1.1.0'
-    ext.apacheCommonsValidatorVersion = '1.5.1'
-    ext.apacheCommonsCompressionVersion = '1.13'
+    ext.apacheCommonsValidatorVersion = '1.6'
     ext.jacksonVersion = '2.8.6'
     ext.dokkaVersion = '0.9.13'
     ext.liquibaseGradleVersion = '1.2.1'
-    ext.jjwtVersion = '0.7.0'
     ext.kotlinLoggingVersion = '1.4.3'
 
     repositories {
@@ -96,7 +94,6 @@ dependencies {
     //spring boot
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-logging'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-security'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -128,7 +125,10 @@ dependencies {
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
 }
-
+//exclude spring boot logging as it will conflict with the slf4j used by kotlin logging
+configurations {
+    all*.exclude module : 'spring-boot-starter-logging'
+}
 //allow for excluding certain tests via external configuration
 test{
     exclude hasProperty('testExclude') ? testExclude : System.getenv('testExclude') ?: ''
