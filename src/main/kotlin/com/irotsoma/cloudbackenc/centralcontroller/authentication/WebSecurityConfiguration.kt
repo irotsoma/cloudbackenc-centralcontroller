@@ -20,11 +20,16 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+
+
 
 /**
  * Security configuration for REST controllers
@@ -35,7 +40,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Configuration
 @EnableWebSecurity
 class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
-
+    @Value("\${JWT_SECRET:defaultSecret}")
+    private lateinit var secret: String
     @Autowired
     lateinit var userDetailsManager: UserAccountDetailsManager
 
@@ -60,7 +66,13 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
                 .frameOptions().disable() //needed to get h2 console working
                 .and()
             .csrf().disable()
-    }
-    //TODO: implement OAuth2 server
 
+        http.addFilterBefore(AuthenticationFilter(super.authenticationManagerBean()), BasicAuthenticationFilter::class.java)
+        http.addFilterAfter(TokenFilter(jwtAuthenticationProvider()),  BasicAuthenticationFilter::class.java)
+    }
+
+    @Bean
+    fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
+        return JwtAuthenticationProvider(secret)
+    }
 }

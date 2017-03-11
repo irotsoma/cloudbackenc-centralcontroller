@@ -20,10 +20,10 @@ buildscript {
     ext.tornadofxVersion = '1.6.0'
     ext.kotlinVersion = '1.1.0'
     ext.apacheCommonsValidatorVersion = '1.6'
-    ext.jacksonVersion = '2.8.6'
     ext.dokkaVersion = '0.9.13'
     ext.liquibaseGradleVersion = '1.2.1'
     ext.kotlinLoggingVersion = '1.4.3'
+    ext.jjwtVersion = '0.7.0'
 
     repositories {
         mavenCentral()
@@ -99,7 +99,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.boot:spring-boot-starter-mail'
     compile 'org.springframework.boot:spring-boot-devtools'
-    compile 'org.springframework.security.oauth:spring-security-oauth2'
+    //compile 'org.springframework.security.oauth:spring-security-oauth2'
     optional 'org.springframework.boot:spring-boot-configuration-processor'
     //common classes
     compile "com.irotsoma.cloudbackenc:common:$commonVersion"
@@ -117,6 +117,7 @@ dependencies {
     compile "commons-validator:commons-validator:$apacheCommonsValidatorVersion"
     //logging
     compile "io.github.microutils:kotlin-logging:$kotlinLoggingVersion"
+    compile "io.jsonwebtoken:jjwt:$jjwtVersion"
     //test
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 
