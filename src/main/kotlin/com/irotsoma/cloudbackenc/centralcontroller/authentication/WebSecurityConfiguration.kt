@@ -19,16 +19,14 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.StatelessAuthenticationFilter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 
 /**
@@ -40,11 +38,11 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Configuration
 @EnableWebSecurity
 class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
-    @Value("\${JWT_SECRET:defaultSecret}")
-    private lateinit var secret: String
+
     @Autowired
     lateinit var userDetailsManager: UserAccountDetailsManager
-
+    @Autowired
+    lateinit var statelessAuthenticationFilter: StatelessAuthenticationFilter
     /**
      * Adds the user account manager to REST controllers with a password encoder for hashing passwords
      */
@@ -57,22 +55,19 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity){
         http
             .authorizeRequests()
-                .antMatchers("/console/**","/cloud-services").permitAll() //TODO: turn off access to H2 console
+                .antMatchers("/console/**").permitAll() //TODO: turn off access to H2 console
+                .antMatchers("/oauth/**").permitAll()
+                //.antMatchers(HttpMethod.GET,"/cloud-services").permitAll()
                 .anyRequest().authenticated() //but anything else requires authentication
                 .and()
-            .httpBasic()
-                .and()
+            //.httpBasic()
+                //.and()
             .headers()
                 .frameOptions().disable() //needed to get h2 console working
                 .and()
             .csrf().disable()
+                .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+        //http.addFilterBefore(AuthenticationFilter(super.authenticationManagerBean()), BasicAuthenticationFilter::class.java)
 
-        http.addFilterBefore(AuthenticationFilter(super.authenticationManagerBean()), BasicAuthenticationFilter::class.java)
-        http.addFilterAfter(TokenFilter(jwtAuthenticationProvider()),  BasicAuthenticationFilter::class.java)
-    }
-
-    @Bean
-    fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
-        return JwtAuthenticationProvider(secret)
     }
 }

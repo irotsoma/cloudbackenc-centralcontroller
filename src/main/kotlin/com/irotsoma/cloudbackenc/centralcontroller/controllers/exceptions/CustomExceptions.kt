@@ -41,3 +41,8 @@ class CloudBackEncUserNotFound : RestException(RestExceptionExceptions.User_Not_
  * Custom exception for invalid email address format
  */
 class InvalidEmailAddressException : RestException(RestExceptionExceptions.Invalid_Email_Address)
+
+/**
+ * Custom exception for exceptions during the authentication process.  Used for internal server errors not for invalid credentials.
+ */
+class AuthenticationException : RestException(RestExceptionExceptions.Authentication_Exception)
