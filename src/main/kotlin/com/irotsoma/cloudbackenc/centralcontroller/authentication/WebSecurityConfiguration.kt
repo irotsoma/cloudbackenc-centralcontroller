@@ -22,6 +22,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.StatelessAuthenticationFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -56,18 +57,15 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
         http
             .authorizeRequests()
                 .antMatchers("/console/**").permitAll() //TODO: turn off access to H2 console
-                .antMatchers("/oauth/**").permitAll()
-                //.antMatchers(HttpMethod.GET,"/cloud-services").permitAll()
+                .antMatchers(HttpMethod.GET,"/cloud-services").permitAll()
                 .anyRequest().authenticated() //but anything else requires authentication
                 .and()
-            //.httpBasic()
-                //.and()
+            .httpBasic()
+                .and()
             .headers()
                 .frameOptions().disable() //needed to get h2 console working
                 .and()
             .csrf().disable()
                 .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-        //http.addFilterBefore(AuthenticationFilter(super.authenticationManagerBean()), BasicAuthenticationFilter::class.java)
-
     }
 }

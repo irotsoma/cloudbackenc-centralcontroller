@@ -18,7 +18,7 @@ import java.util.*
  */
 @Component
 class CloudServiceAuthenticationCompleteListener() :CloudServiceAuthenticationRefreshListener {
-    override var user: CloudBackEncUser? = null
+    override final var user: CloudBackEncUser? = null
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired

@@ -25,7 +25,7 @@ class TokenAuthenticationService {
     private lateinit var header: String
 
     fun addAuthentication(response: HttpServletResponse, authentication: UserAuthentication): String {
-        val user = authentication.getDetails()
+        val user = authentication.details
         val token = tokenHandler.createTokenForUser(user)
         response.addHeader(header, token)
         return token
@@ -35,9 +35,7 @@ class TokenAuthenticationService {
         val token = request.getHeader(header)
         if (token != null) {
             val user = tokenHandler.parseUserFromToken(token)
-            if (user != null) {
-                return UserAuthentication(user)
-            }
+            return UserAuthentication(user)
         }
         return null
     }

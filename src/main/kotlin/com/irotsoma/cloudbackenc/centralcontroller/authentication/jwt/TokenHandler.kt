@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Component
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 /**
@@ -27,6 +26,8 @@ class TokenHandler {
         set(value) {
             Base64.getEncoder().encodeToString(value?.toByteArray())
         }
+    @Value("\${jwt.expiration}")
+    private var expiration: Long = 3600000L
     @Autowired
     private lateinit var userService: UserAccountDetailsManager
 
@@ -41,7 +42,7 @@ class TokenHandler {
 
     fun createTokenForUser(user: User): String {
         val now = Date()
-        val expiration = Date(now.time + TimeUnit.HOURS.toMillis(1L))
+        val expiration = Date(now.time + expiration)
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(user.username)
