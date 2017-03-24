@@ -25,12 +25,9 @@ class StatelessAuthenticationFilter : GenericFilterBean() {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, filterChain: FilterChain) {
         val authentication = tokenAuthenticationService.getAuthentication(request as HttpServletRequest)
-
-        SecurityContextHolder.getContext().authentication = authentication
         if (authentication != null) {
-            filterChain.doFilter(request, response)
-            SecurityContextHolder.getContext().authentication = null
-                
+            SecurityContextHolder.getContext().authentication = authentication
         }
+        filterChain.doFilter(request, response)
     }
 }

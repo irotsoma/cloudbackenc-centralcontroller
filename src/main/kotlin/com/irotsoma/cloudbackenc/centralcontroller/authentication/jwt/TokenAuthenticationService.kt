@@ -4,7 +4,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
@@ -21,22 +21,23 @@ class TokenAuthenticationService {
     @Autowired
     private lateinit var tokenHandler: TokenHandler
 
-    @Value("\${jwt.header}")
-    private lateinit var header: String
-
     fun addAuthentication(response: HttpServletResponse, authentication: UserAuthentication): String {
         val user = authentication.details
         val token = tokenHandler.createTokenForUser(user)
-        response.addHeader(header, token)
+        response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
         return token
     }
 
     fun getAuthentication(request: HttpServletRequest): Authentication? {
-        val token = request.getHeader(header)
-        if (token != null) {
-            val user = tokenHandler.parseUserFromToken(token)
+        //TODO: Add expiration to tokens
+
+        val token = request.getHeader(HttpHeaders.AUTHORIZATION)
+        val splitToken = token.split(' ')
+        if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER"){
+            val user = tokenHandler.parseUserFromToken(splitToken[1])
             return UserAuthentication(user)
+        } else {
+            return null
         }
-        return null
     }
 }
