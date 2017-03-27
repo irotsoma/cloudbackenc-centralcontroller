@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Irotsoma, LLC
+ * Copyright (C) 2016-2017  Irotsoma, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,7 @@ class CloudServiceLoginController {
     lateinit var messageSource: MessageSource
 
     @RequestMapping("cloud-services/login/{uuid}", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
-    fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
+    @ResponseBody fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory : Class<CloudServiceFactory> = cloudServiceFactoryRepository.cloudServiceExtensions[uuid] ?: throw InvalidCloudServiceUUIDException()
         val authenticationService = cloudServiceFactory.newInstance().authenticationService

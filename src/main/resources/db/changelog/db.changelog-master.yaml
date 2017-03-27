@@ -125,26 +125,14 @@ databaseChangeLog:
             tableName: file
             columns:
               - column:
-                  name: id
-                  type: int
-                  autoIncrement: true
+                  name: file_uuid
+                  type: char(36)
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: file_uuid
-                  type: char(36)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: owner_uuid
-                  type: char(36)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: owner_file_uuid
-                  type: char(36)
+                  name: user_id
+                  type: int
                   constraints:
                     nullable: false
         - createTable:
@@ -158,8 +146,8 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: file_id
-                  type: int
+                  name: file_uuid
+                  type: char(36)
                   constraints:
                     nullable: false
               - column:

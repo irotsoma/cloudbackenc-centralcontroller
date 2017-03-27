@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Irotsoma, LLC
+ * Copyright (C) 2016-2017  Irotsoma, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,10 +22,11 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
-import com.irotsoma.cloudbackenc.common.FileMetadata
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -53,11 +54,11 @@ class FileController {
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
-    @ResponseBody fun receiveNewFile(@RequestParam("metadata") request: FileMetadata, @RequestParam("file") file: MultipartFile){
+    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID, @RequestParam("file") file: MultipartFile): ResponseEntity<UUID> {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-        var fileObject = fileRepository.findByOwnerUuidAndOwnerFileUuid(request.senderId.toString(),request.senderFileId.toString())
+        var fileObject = fileRepository.findByFileUuid(fileUuid.toString())
 
         if (fileObject!=null){
             if (((fileObject.cloudServiceFileList?.size ?:0) > cloudServiceFilesSettings.maxFileVersions) && ((fileObject.cloudServiceFileList?.size ?: 0) !=0) ) {
@@ -94,7 +95,7 @@ class FileController {
                 }
             }
         } else {
-            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), ownerUuid = request.senderId.toString(), ownerFileUuid = request.senderFileId.toString(), cloudServiceFileList = null)
+            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), userId = currentUser.id!!, cloudServiceFileList = null)
             fileRepository.saveAndFlush(fileObject)
         }
         val fileDistributor = FileDistributor()
@@ -109,25 +110,22 @@ class FileController {
         } else {
             val tempFile = createTempFile(fileObject.fileUuid)
             file.transferTo(tempFile)
-            //Make the path from the fileUuid + version number + the file Uuid used by the sender
-            val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}/${fileObject.ownerFileUuid}"
+            //Make the path from the fileUuid + version number
+            val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}"
             //TODO: make these async
             val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
-                val cloudServiceFile = CloudServiceFileObject(fileObject.id!!, serviceToSendTo.toString(), cloudServiceFilePath,Date())
+                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, serviceToSendTo.toString(), cloudServiceFilePath,Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()
         }
 
 
-
-
-
-
-
         //TODO: wait for async processes (delete and upload as applicable) until timeout expires
 
+
+        return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.OK)
     }
 
 

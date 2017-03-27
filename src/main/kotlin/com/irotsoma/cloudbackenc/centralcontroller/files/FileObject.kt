@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Irotsoma, LLC
+ * Copyright (C) 2016-2017  Irotsoma, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,21 +23,14 @@ import javax.persistence.*
 
 @Entity
 @Table(name="file")
-class FileObject(@Column(name = "file_uuid", unique = true, nullable = false)
+class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false)
                  var fileUuid: String,
 
-                 @Column(name="owner_uuid", nullable = false)
-                 var ownerUuid: String,
-
-                 @Column(name="owner_file_uuid", nullable = false)
-                 var ownerFileUuid: String,
+                 @Column(name="user_id", nullable = false)
+                 var userId: Long,
 
                  @ElementCollection(fetch = FetchType.EAGER)
-                 @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_id", referencedColumnName = "id")))
+                 @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_uuid")))
                  @OrderBy("last_updated DESC")
                  var cloudServiceFileList: List<CloudServiceFileObject>?
-) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
-}
+)
