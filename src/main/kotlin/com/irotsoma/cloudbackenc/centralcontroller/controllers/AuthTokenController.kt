@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
+/*
  * Created by irotsoma on 3/20/17.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
@@ -35,7 +35,8 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 /**
- *
+ * Rest controller that generates an auth token for a user to allow for background tasks to access the user
+ * account without having to store the password (eg. FileController).
  *
  * @author Justin Zak
  */
@@ -47,12 +48,20 @@ class AuthTokenController {
     @Autowired
     private lateinit var tokenHandler: TokenHandler
 
+    /**
+     * POST method available only to admin users that allows creating a login token for any user.
+     */
     @RequestMapping("auth", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun getTokenForOther(@RequestBody user: CloudBackEncUser): ResponseEntity<AuthenticationToken>{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(user.username) as User)
         return ResponseEntity(AuthenticationToken(token), HttpStatus.OK)
     }
+
+    /**
+     * GET method which retrieves an auth token for the currently logged in user.  Also can be used to refresh tokens
+     * that have not expired yet by logging in with a valid token.
+     */
     @RequestMapping("auth", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     fun getToken(): ResponseEntity<AuthenticationToken>{
         val authorizedUser = SecurityContextHolder.getContext().authentication

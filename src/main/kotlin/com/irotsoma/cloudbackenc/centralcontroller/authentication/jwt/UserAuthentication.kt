@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
+/*
  * Created by irotsoma on 3/17/17.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
@@ -26,37 +26,60 @@ import org.springframework.security.core.userdetails.User
 
 
 /**
- *
+ * Implementation of Spring Authentication class from a Spring User object
  *
  * @author Justin Zak
  */
 class UserAuthentication(private val user: User) : Authentication {
+
+    /**
+     * Stores the authentication status of the user.
+     *
+     * Default = true
+     */
     private var authenticated = true
 
+    /**
+     * returns the username
+     */
     override fun getName(): String {
         return user.username
     }
-
+    /**
+     * returns the authorities
+     */
     override fun getAuthorities(): Collection<GrantedAuthority> {
         return user.authorities
     }
-
+    /**
+     * returns the password
+     */
     override fun getCredentials(): Any {
         return user.password
     }
-
+    /**
+     * returns the User object
+     */
     override fun getDetails(): User {
         return user
     }
-
+    /**
+     * returns the username
+     */
     override fun getPrincipal(): Any {
         return user.username
     }
 
+    /**
+     * returns the authentication status
+     */
     override fun isAuthenticated(): Boolean {
         return authenticated
     }
 
+    /**
+     * sets the authentication status to a new value
+     */
     override fun setAuthenticated(authenticated: Boolean) {
         this.authenticated = authenticated
     }

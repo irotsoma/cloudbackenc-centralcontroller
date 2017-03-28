@@ -47,13 +47,21 @@ class TokenHandler {
     @Autowired
     private lateinit var userService: UserAccountDetailsManager
 
-    fun parseUserFromToken(token: String): User {
+    fun parseUserFromToken(token: String): User? {
         val username = Jwts.parser()
                 .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .body
-                .subject
+                .subject ?: return null
         return userService.loadUserByUsername(username) as User
+    }
+    fun isTokenExpired(token: String):Boolean{
+        val expiration = Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .body
+                .expiration
+        return expiration < Date()
     }
 
     fun createTokenForUser(user: User): String {

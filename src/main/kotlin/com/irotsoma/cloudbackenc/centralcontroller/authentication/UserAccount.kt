@@ -27,7 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import javax.persistence.*
 
 /**
- * User Account Object
+ * JPA User Account Object
  *
  * @author Justin Zak
  */
@@ -42,7 +42,6 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
     companion object {
         val PASSWORD_ENCODER: PasswordEncoder = BCryptPasswordEncoder()
     }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
@@ -63,6 +62,10 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
         get(){
             return roleList?.map{ CloudBackEncRoles.valueOf(it)}
         }
+
+    /**
+     * Convenience method that returns a CloudBackEncUser object with the password masked
+     */
     fun cloudBackEncUser(): CloudBackEncUser{
         return CloudBackEncUser(username, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
     }

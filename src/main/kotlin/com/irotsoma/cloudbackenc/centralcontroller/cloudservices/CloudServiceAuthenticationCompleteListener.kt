@@ -33,7 +33,7 @@ import java.util.*
  * @author Justin Zak
  */
 @Component
-class CloudServiceAuthenticationCompleteListener() :CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(): CloudServiceAuthenticationRefreshListener {
     override final var user: CloudBackEncUser? = null
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
@@ -44,9 +44,11 @@ class CloudServiceAuthenticationCompleteListener() :CloudServiceAuthenticationRe
     }
 
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
-        //TODO implement updating userCloudServiceRepository when auth finishes
-
-
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (user != null) {
+            val userId = userAccountDetailsManager.userRepository.findByUsername(user!!.username)?.id ?: return
+            val cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, cloudServiceUuid.toString()) ?: return
+            cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
+            userCloudServiceRepository.save(cloudServiceUserInfo)
+        }
     }
 }

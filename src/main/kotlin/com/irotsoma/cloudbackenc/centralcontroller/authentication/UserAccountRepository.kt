@@ -21,7 +21,9 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**
- * Repository object for storing user accounts
+ * JPA repository object for storing user accounts
+ *
+ * @author Justin Zak
  */
 interface UserAccountRepository : JpaRepository<UserAccount, Long> {
     fun findByUsername(username: String): UserAccount?

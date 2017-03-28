@@ -24,10 +24,11 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /**
+ * Validates that a token in the Authorization Bearer header is valid for the user.
  *
+ * This is a fairly simple implementation that is not meant to be exceptionally secure especially if the secret is exposed.
  *
  * @author Justin Zak
  */
@@ -37,21 +38,19 @@ class TokenAuthenticationService {
     @Autowired
     private lateinit var tokenHandler: TokenHandler
 
-    fun addAuthentication(response: HttpServletResponse, authentication: UserAuthentication): String {
-        val user = authentication.details
-        val token = tokenHandler.createTokenForUser(user)
-        response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
-        return token
-    }
-
     fun getAuthentication(request: HttpServletRequest): Authentication? {
-        //TODO: Add expiration to tokens
-
+        //parse authorization bearer header
         val token = request.getHeader(HttpHeaders.AUTHORIZATION)
         val splitToken = token.split(' ')
         if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER"){
-            val user = tokenHandler.parseUserFromToken(splitToken[1])
-            return UserAuthentication(user)
+            //verify token is not expired
+            if (!tokenHandler.isTokenExpired(splitToken[1])){
+                //parse user from token
+                val user = tokenHandler.parseUserFromToken(splitToken[1]) ?: return null
+                return UserAuthentication(user)
+            } else {
+                return null
+            }
         } else {
             return null
         }

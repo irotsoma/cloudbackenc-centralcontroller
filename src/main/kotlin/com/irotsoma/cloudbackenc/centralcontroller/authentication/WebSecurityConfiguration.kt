@@ -56,15 +56,15 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
         http
             .authorizeRequests()
                 .antMatchers("/console/**").permitAll() //TODO: turn off access to H2 console
-                .antMatchers(HttpMethod.GET,"/cloud-services").permitAll()
+                .antMatchers(HttpMethod.GET,"/cloud-services").permitAll() //allow access to list of installed cloud services
                 .anyRequest().authenticated() //but anything else requires authentication
                 .and()
-            .httpBasic()
+            .httpBasic() //allow basic username/password authentication
                 .and()
             .headers()
                 .frameOptions().disable() //needed to get h2 console working
                 .and()
             .csrf().disable()
-                .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+                .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java) //add token authentication filter
     }
 }

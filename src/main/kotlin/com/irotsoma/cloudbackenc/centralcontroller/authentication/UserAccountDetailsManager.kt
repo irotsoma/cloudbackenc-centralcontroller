@@ -19,7 +19,6 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
-import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
@@ -32,14 +31,12 @@ import org.springframework.stereotype.Component
 /**
  * User Account Details Service with Autowired Repositories
  *
- * For use by basic authentication in spring boot controllers
+ * For use by authentication in spring boot controllers
  *
  * @author Justin Zak
  */
 @Component
 open class UserAccountDetailsManager : UserDetailsService {
-    /** kotlin-logging implementation*/
-    companion object: KLogging()
     @Autowired
     lateinit var userRepository: UserAccountRepository
 
