@@ -32,7 +32,7 @@ class DuplicateUserException : RestException(RestExceptionExceptions.Duplicate_U
 class InvalidCloudServiceUUIDException : RestException(RestExceptionExceptions.Invalid_Cloud_Service_UUID)
 
 /**
- * Custom exception for trying to access /users with an invalid user ID
+ * Custom exception for trying to access a URL with a user parameter with an invalid user ID
  */
 class CloudBackEncUserNotFound : RestException(RestExceptionExceptions.User_Not_Found)
 

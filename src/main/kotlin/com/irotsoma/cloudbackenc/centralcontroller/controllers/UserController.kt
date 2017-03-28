@@ -119,7 +119,7 @@ class UserController {
         //authorized user requesting the update must either be the user in the request or be an admin
         if ((updatedUser.username != authorizedUser.name) || (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
         {
-            return ResponseEntity(null, HttpStatus.NOT_FOUND)
+            return ResponseEntity(null, HttpStatus.FORBIDDEN)
         }
         //
         try{

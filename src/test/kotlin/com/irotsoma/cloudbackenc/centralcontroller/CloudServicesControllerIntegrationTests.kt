@@ -19,9 +19,9 @@
 package com.irotsoma.cloudbackenc.centralcontroller
 
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtension
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
-import org.hamcrest.Matchers.containsString
-import org.junit.Assert.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
@@ -30,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.*
 import org.springframework.test.context.junit4.SpringRunner
+import java.util.*
 
 /**
  * Integration tests for cloud services list controllers.  Assumes Google Drive extension is installed as noted in comments.
@@ -58,10 +59,16 @@ open class CloudServicesControllerIntegrationTests {
             protocol = "http"
             restTemplate = TestRestTemplate("test", "insecurepassword")
         }
-        val testValue = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services", String::class.java)
+        val testValue = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services", CloudServiceExtensionList::class.java)
         assert(testValue.statusCode==HttpStatus.OK)
+        val expected = CloudServiceExtension(UUID.fromString("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375"),"Google Drive")
         //below is only valid when google drive plugin is installed in extensions folder
-        assertThat(testValue.body, containsString("[{\"uuid\":\"1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375\",\"name\":\"Google Drive\",\"token\":\"\",\"requiresUsername\":false,\"requiresPassword\":false}]"))
+        assert(testValue.body.contains(expected))
+
+        val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services/test", CloudServiceExtensionList::class.java)
+        assert(testValue2.statusCode==HttpStatus.OK)
+        //below is only valid when google drive plugin is installed in extensions folder
+        assert(testValue2.body.contains(expected))
     }
 
     @Test
@@ -112,7 +119,7 @@ open class CloudServicesControllerIntegrationTests {
         requestHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         val httpEntity = HttpEntity<CloudServiceUser>(CloudServiceUser("test",null,"1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", null), requestHeaders)
         val returnValue = restTemplate.postForEntity("$protocol://localhost:$port/cloud-services/login/1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", httpEntity, CloudServiceUser.STATE::class.java)
-        assert(returnValue.body== CloudServiceUser.STATE.LOGGED_IN)
+        assert(returnValue.body== CloudServiceUser.STATE.TEST)
 
     }
 

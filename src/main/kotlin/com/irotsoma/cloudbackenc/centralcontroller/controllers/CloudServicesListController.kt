@@ -22,21 +22,27 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
+import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 
 /**
  * REST Controller for getting a list of cloud service extensions currently installed.
  *
- * Use GET method to /cloud-services URL.
+ * Use: GET method to /cloud-services URL.
  *
  * @author Justin Zak
  */
 @RestController
-@RequestMapping("/cloud-services",produces = arrayOf("application/json"))
 class CloudServicesListController {
     /** kotlin-logging implementation*/
     companion object: KLogging()
@@ -50,31 +56,31 @@ class CloudServicesListController {
     @Autowired
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
 
-    @RequestMapping(method = arrayOf(RequestMethod.GET))
-    @ResponseBody fun getCloudServices(@RequestParam("user", required=false) username :String?) : CloudServiceExtensionList {
-
-
-        if (username == null) {
-            return cloudServiceFactoryRepository.cloudServiceNames
-        } else {
-            //TODO: Change this case to a separate URI like /logged-in
-
-            //TODO: check permission to see if logged in user is the requested one or this is an admin
-
-
-            return AvailableCloudServices(username)
-        }
+    /**
+     * GET method for retrieving a list of Cloud Service Extensions currently installed.
+     */
+    @RequestMapping("/cloud-services",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
+    @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
+        return cloudServiceFactoryRepository.cloudServiceNames
     }
-
-
-    fun AvailableCloudServices(username: String) : CloudServiceExtensionList {
-
+    @RequestMapping("/cloud-services/{username}",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
+    fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
         //return an empty list if the user doesn't exist
-        val user = userRepository.findByUsername(username) ?: return CloudServiceExtensionList()
+        val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()
+        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
-        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id!!)
+        //authorized user requesting the list must either be the user in the request or be an admin
+        if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN)?:false)))
+        {
+            return ResponseEntity(null, HttpStatus.FORBIDDEN)
+        }
 
-        //TODO: return only logged in cloud services
-        return CloudServiceExtensionList()
+        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id!!) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
+        val cloudServices = cloudServiceFactoryRepository.cloudServiceNames.filter{ it.uuid in userCloudServiceList.map{UUID.fromString(it.cloudServiceUuid)}}
+
+
+        return ResponseEntity(CloudServiceExtensionList(ArrayList(cloudServices)), HttpStatus.OK)
     }
+
 }
