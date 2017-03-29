@@ -45,14 +45,16 @@ import javax.mail.MessagingException
 import javax.servlet.http.HttpServletResponse
 import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalClassPartsProvider
 
-
+/**
+ * REST controller for managing users.
+ */
 @RestController
 @RequestMapping("/users")
 class UserController {
     /** kotlin-logging implementation*/
     companion object: KLogging()
 
-    @Suppress("SpringKotlinAutowiring") //TODO: see if this can be removed.  Seems to be giving autowired error, but it works fine
+    //@Suppress("SpringKotlinAutowiring") //TODO: see if this can be removed.  Seems to be giving autowired error, but it works fine
     @Autowired
     private lateinit var javaMailSender: JavaMailSender
     @Autowired
@@ -60,6 +62,9 @@ class UserController {
     @Autowired
     lateinit var messageSource: MessageSource
 
+    /**
+     * Post method for creating new users (Admin only)
+     */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalClassPartsProvider.None>{
@@ -112,6 +117,9 @@ class UserController {
         return ResponseEntity(headers, HttpStatus.CREATED)
     }
 
+    /**
+     * PUT method for updating user information (Admin or affected user only)
+     */
     @RequestMapping(method = arrayOf(RequestMethod.PUT), produces = arrayOf("application/json"))
     fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
@@ -143,23 +151,32 @@ class UserController {
         return ResponseEntity(updatedUser.maskedPasswordInstance(), HttpStatus.OK)
     }
 
-
-    @RequestMapping("/{userId}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
+    /**
+     * DELETE method for deleting a user from the system (Admin only)
+     */
+    @RequestMapping("/{username}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun deleteUser(@PathVariable userId: String?, @RequestBody updatedUser:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
-        val authorizedUser = SecurityContextHolder.getContext().authentication.name
-
-
-        //TODO implement this
+    fun deleteUser(@PathVariable username: String) : ResponseEntity<AdditionalClassPartsProvider.None>{
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username)
+        userAccountDetailsManager.userRepository.delete(requestedUser)
         return ResponseEntity(HttpStatus.OK)
     }
-    @RequestMapping("/{userId}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
-    @Secured("ROLE_ADMIN")
-    fun getUser(@PathVariable userId: String?, @RequestBody user:CloudBackEncUser) : ResponseEntity<AdditionalClassPartsProvider.None>{
-        val authorizedUser = SecurityContextHolder.getContext().authentication.name
 
-
-        //TODO implement this
-        return ResponseEntity(HttpStatus.OK)
+    /**
+     * GETs the user's information (Admin or affected user only)
+     */
+    @RequestMapping("/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    fun getUser(@PathVariable username: String) : ResponseEntity<CloudBackEncUser>{
+        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username)
+        if (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
+            if (requestedUser == null){
+                return ResponseEntity(HttpStatus.NOT_FOUND)
+            }
+        } else if (requestedUser?.username != authorizedUser.name) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+        return ResponseEntity(requestedUser!!.cloudBackEncUser(),HttpStatus.OK)
     }
 }
