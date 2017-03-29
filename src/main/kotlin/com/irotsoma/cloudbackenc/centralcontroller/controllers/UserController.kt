@@ -54,7 +54,6 @@ class UserController {
     /** kotlin-logging implementation*/
     companion object: KLogging()
 
-    //@Suppress("SpringKotlinAutowiring") //TODO: see if this can be removed.  Seems to be giving autowired error, but it works fine
     @Autowired
     private lateinit var javaMailSender: JavaMailSender
     @Autowired

@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 /**
-*
+* Determines the best cloud service provider to which to distribute files.
 *
 * @author Justin Zak
 */

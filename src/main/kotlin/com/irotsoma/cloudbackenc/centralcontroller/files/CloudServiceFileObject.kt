@@ -22,6 +22,15 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 import java.util.*
 import javax.persistence.*
 
+/**
+ * JPA entity representing a file stored on a cloud service provider.
+ *
+ * @property id Database generated ID for the record.
+ * @property fileUuid The UUID of a file as generated when the file was uploaded to the file controller.
+ * @property cloudServiceUuid the UUID of the cloud service extension that controls the cloud service interface operations.
+ * @property locator The URI, ID, or other string that uniquely locates a file in a cloud service.
+ * @property lastUpdated The date and time of the last update to the file (usually just the upload date/time).
+ */
 @Entity
 @Table(name="cloud_service_file")
 class CloudServiceFileObject(@Column(name="file_uuid", nullable = false) var fileUuid: String,

@@ -21,6 +21,13 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 
 import javax.persistence.*
 
+/**
+ * JPA object that represents files including linking to their cloud service storage location.
+ *
+ * @property fileUuid the unique ID of the file created when the file is first uploaded to the file controller.
+ * @property userId The ID of the user that owns the file.
+ * @property cloudServiceFileList A list of locations where the various versions of this file are stored on cloud service providers.
+ */
 @Entity
 @Table(name="file")
 class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false)
