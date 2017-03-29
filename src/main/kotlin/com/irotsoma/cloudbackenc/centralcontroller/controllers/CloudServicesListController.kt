@@ -38,7 +38,8 @@ import java.util.*
 /**
  * REST Controller for getting a list of cloud service extensions currently installed.
  *
- * Use: GET method to /cloud-services URL.
+ * Use: GET method to /cloud-services to get all installed extensions.
+ * Use: GET method to /cloud-services/{username} to get installed extensions with with the user has previously interacted.
  *
  * @author Justin Zak
  */
@@ -63,6 +64,9 @@ class CloudServicesListController {
     @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
         return cloudServiceFactoryRepository.cloudServiceNames
     }
+    /**
+     * GET method for retrieving a list of Cloud Service Extensions currently installed with which the user has previously interacted.
+     */
     @RequestMapping("/cloud-services/{username}",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
         //return an empty list if the user doesn't exist

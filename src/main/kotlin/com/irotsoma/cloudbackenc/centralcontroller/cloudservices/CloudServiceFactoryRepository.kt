@@ -23,7 +23,10 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.irotsoma.cloudbackenc.common.VersionedExtensionFactoryClass
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.*
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtension
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionConfig
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -40,6 +43,10 @@ import javax.annotation.PostConstruct
 /**
  * Imports and stores information about installed Cloud Service Extensions
  *
+ * @property applicationContext Stores the current application context.  Set automatically when autowired.
+ * @property cloudServiceExtensions A map of CloudServiceFactory Class objects indexed by UUID.
+ * @property cloudServiceNames A list of CloudServiceExtension objects stored as a CloudServiceExtensionList for serialization convenience.
+ *
  * @author Justin Zak
  */
 @Component
@@ -50,12 +57,17 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
     var cloudServiceExtensions  = emptyMap<UUID,Class<CloudServiceFactory>>()
     var cloudServiceNames = CloudServiceExtensionList()
-    //application context must be set before
-    lateinit var _applicationContext : ConfigurableApplicationContext
-    override fun setApplicationContext(applicationContext: ApplicationContext?) {
-        _applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw CloudServiceException("Application context in CloudServiceFactoryRepository is null.")
+    lateinit var applicationContext : ConfigurableApplicationContext
+    /**
+     * Used by Spring Autowiring to set the current application context.
+     */
+    override fun setApplicationContext(applicationContext: ApplicationContext) {
+        this.applicationContext = applicationContext as ConfigurableApplicationContext
     }
 
+    /**
+     * Loads any Cloud Service Extensions from the extension directory after autowiring constructs the object.
+     */
     @PostConstruct
     fun loadDynamicServices() {
         //external config extension directory
@@ -113,7 +125,7 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
             }
         }
         //create a class loader with all of the jars
-        val classLoader = URLClassLoader(jarURLs.values.toTypedArray(), _applicationContext.classLoader)
+        val classLoader = URLClassLoader(jarURLs.values.toTypedArray(), applicationContext.classLoader)
         //cycle through all of the classes, make sure they inheritors CloudServiceFactory, and add them to the list
         for ((key, value) in factoryClasses) {
             try {

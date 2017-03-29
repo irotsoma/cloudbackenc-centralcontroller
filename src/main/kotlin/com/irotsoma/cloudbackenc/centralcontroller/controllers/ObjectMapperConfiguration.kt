@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Primary
 @Configuration
 class ObjectMapperConfiguration {
     /**
-     * Function to generate the necessary Jackson factories for parsing JSON
+     * Function to generate the necessary Jackson factories for parsing JSON to Kotlin objects
      */
     @Bean
     @Primary

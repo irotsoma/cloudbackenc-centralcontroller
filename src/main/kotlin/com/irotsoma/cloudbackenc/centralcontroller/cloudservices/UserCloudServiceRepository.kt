@@ -22,7 +22,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**
- *
+ * JPA repository for link between users and cloud services.
  *
  * @author Justin Zak
  */

@@ -44,6 +44,8 @@ import java.util.*
  *
  * Use POST method to /cloud_service/login/{uuid} where {uuid} is the uuid returned from the cloud service list
  * controller for the extension.
+ *
+ * @author Justin Zak
  */
 @RestController
 class CloudServiceLoginController {
@@ -57,6 +59,13 @@ class CloudServiceLoginController {
     @Autowired
     lateinit var messageSource: MessageSource
 
+    /**
+     * Calls the login function of the cloud service.
+     *
+     * @param uuid The UUID of the cloud service extension.
+     * @param user A CloudServiceUser object that contains the user information for the cloud service.
+     * @returns CloudServiceUser.STATE value indicating the login state.
+     */
     @RequestMapping("cloud-services/login/{uuid}", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()

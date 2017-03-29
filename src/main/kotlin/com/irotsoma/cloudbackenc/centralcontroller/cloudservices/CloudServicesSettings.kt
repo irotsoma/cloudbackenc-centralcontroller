@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Configuration
  * Configuration object for cloud services.
  * Loads application.properties settings that start with "cloudservices".
  *
+ * @property directory Directory that stores the cloud service extensions.
+ * @property configFileName The name of the config files in the extension jars.
  * @author Justin Zak
  */
 @Configuration

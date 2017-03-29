@@ -39,11 +39,20 @@ class StatelessAuthenticationFilter : GenericFilterBean() {
     @Autowired
     private lateinit var tokenAuthenticationService: TokenAuthenticationService
 
+    /**
+     * Calls authentication service to verify if the request has a valid token and then coninues the filter chain.
+     *
+     * @param request REST request to check for authentication header.
+     * @param response REST response object
+     * @param filterChain Filter chain for the current transaction.
+     */
     override fun doFilter(request: ServletRequest, response: ServletResponse, filterChain: FilterChain) {
+        //check for a valid authentication header and set it in the security context if it exists
         val authentication = tokenAuthenticationService.getAuthentication(request as HttpServletRequest)
         if (authentication != null) {
             SecurityContextHolder.getContext().authentication = authentication
         }
+        //call the filter chain to continue the chain of authentication filters
         filterChain.doFilter(request, response)
     }
 }

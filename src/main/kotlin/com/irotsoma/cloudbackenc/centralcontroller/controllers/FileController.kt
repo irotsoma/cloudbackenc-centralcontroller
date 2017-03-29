@@ -33,6 +33,9 @@ import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Paths
 import java.util.*
 
+/**
+ * A REST controller for interacting with backup files.
+ */
 @RestController
 @RequestMapping("/files")
 class FileController {
@@ -53,12 +56,23 @@ class FileController {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
+    /**
+     * Call to send a file to a cloud service.  Can be either a new file or a new version of an existing file.
+     *
+     * @param fileUuid Send only if this is to be a new version for an existing file.  Returned from previous call to this controller.
+     * @param file The file to send to the cloud service.
+     * @returns A UUID for the file.  Must be sent in subsequent calls to identify a file as a new version of an existing file rather than a new file.
+     */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
-    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID, @RequestParam("file") file: MultipartFile): ResponseEntity<UUID> {
+    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("file") file: MultipartFile): ResponseEntity<UUID> {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-        var fileObject = fileRepository.findByFileUuid(fileUuid.toString())
+        var fileObject = if (fileUuid != null) {
+            fileRepository.findByFileUuid(fileUuid.toString())
+        } else {
+            null
+        }
 
         if (fileObject!=null){
             if (((fileObject.cloudServiceFileList?.size ?:0) > cloudServiceFilesSettings.maxFileVersions) && ((fileObject.cloudServiceFileList?.size ?: 0) !=0) ) {

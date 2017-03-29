@@ -38,6 +38,12 @@ class TokenAuthenticationService {
     @Autowired
     private lateinit var tokenHandler: TokenHandler
 
+    /**
+     * Validates authentication token in an Authentication: Bearer header.
+     *
+     * @param request REST request to validate.
+     * @returns An Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
+     */
     fun getAuthentication(request: HttpServletRequest): Authentication? {
         //parse authorization bearer header
         val token = request.getHeader(HttpHeaders.AUTHORIZATION)

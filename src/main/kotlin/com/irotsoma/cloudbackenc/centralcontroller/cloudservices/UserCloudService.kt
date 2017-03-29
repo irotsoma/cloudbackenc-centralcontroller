@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
+/*
  * Created by irotsoma on 12/7/16.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
@@ -22,25 +22,20 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 import javax.persistence.*
 
 /**
+ * JPA entity representing the link between a user and a cloud service including login status.
  *
- *
+ * @property id Database generated ID for the record.
+ * @property cloudServiceUuid UUID of the cloud service to link to the user.
+ * @property userId ID for the user.
+ * @property loggedIn Last known login status of the user for this cloud service.
  * @author Justin Zak
  */
 @Entity
 @Table(name="user_cloud_service")
-class UserCloudService(cloudServiceUuid: String,
-                       userId: Long,
-                       LoggedIn: Boolean = false) {
+class UserCloudService(@Column(name="cloud_service_uuid",nullable=false) var cloudServiceUuid: String,
+                       @Column(name="user_id",nullable=false) var userId: Long,
+                       @Column(name="logged_in",nullable=false) var loggedIn: Boolean = false) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
-
-    @Column(name="cloud_service_uuid",nullable=false)
-    var cloudServiceUuid: String? = cloudServiceUuid
-
-    @Column(name="user_id",nullable=false)
-    var userId: Long? = userId
-
-    @Column(name="logged_in",nullable=false)
-    var loggedIn: Boolean = LoggedIn
 }

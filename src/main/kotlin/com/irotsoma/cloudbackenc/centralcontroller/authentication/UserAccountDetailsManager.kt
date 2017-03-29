@@ -40,10 +40,23 @@ open class UserAccountDetailsManager : UserDetailsService {
     @Autowired
     lateinit var userRepository: UserAccountRepository
 
+    /**
+     * Loads a user from the database by searching for the username and returns a Spring User object.
+     *
+     * @param username The username to search for in the database.
+     * @returns An instance of Spring UserDetails with the user's information.
+     */
     override fun loadUserByUsername(username: String): UserDetails {
         val userAccount = userRepository.findByUsername(username) ?: throw UsernameNotFoundException(" '$username'")
         return User(userAccount.username, userAccount.password, userAccount.enabled, true,true,true, userAccount.roles?.let {getRoles(it)})
     }
+
+    /**
+     * Translates the list of user roles from a list of CloudBackEncRoles to a list of GrantedAuthority
+     *
+     * @param roles The list of roles as instances of CloudBackEncRoles.
+     * @returns The list of roles as a list of GrantedAuthority objects.
+     */
     fun getRoles(roles: Collection<CloudBackEncRoles>) : List<GrantedAuthority>{
         var roleNames :Array<String> = emptyArray()
         for (role in roles){

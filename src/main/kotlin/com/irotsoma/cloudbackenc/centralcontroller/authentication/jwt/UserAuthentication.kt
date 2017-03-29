@@ -28,6 +28,7 @@ import org.springframework.security.core.userdetails.User
 /**
  * Implementation of Spring Authentication class from a Spring User object
  *
+ * @property user An instance of Spring User that holds the user information.
  * @author Justin Zak
  */
 class UserAuthentication(private val user: User) : Authentication {
@@ -35,9 +36,9 @@ class UserAuthentication(private val user: User) : Authentication {
     /**
      * Stores the authentication status of the user.
      *
-     * Default = true
+     * Default = enabled status of user
      */
-    private var authenticated = true
+    private var authenticated = user.isEnabled
 
     /**
      * returns the username

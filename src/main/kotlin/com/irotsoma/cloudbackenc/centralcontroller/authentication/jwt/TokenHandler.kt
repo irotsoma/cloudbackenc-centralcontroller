@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
+/*
  * Created by irotsoma on 3/17/17.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
@@ -25,36 +25,70 @@ import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Component
 import java.util.*
 
 
 /**
- *
+ * Authentication Token functionality
  *
  * @author Justin Zak
  */
 @Component
 class TokenHandler {
 
+    /**
+     * The encoding secret pulled from application settings and Base64 encoded.
+     */
     @Value("\${jwt.secret}")
     private var secret: String? = null
         set(value) {
             Base64.getEncoder().encodeToString(value?.toByteArray())
         }
+    /**
+     * Expiration time in milliseconds for a token pulled from application settings or defaulted to 1 hour
+     */
     @Value("\${jwt.expiration}")
-    private var expiration: Long = 3600000L
+    private var expirationTime: Long = 3600000L
     @Autowired
     private lateinit var userService: UserAccountDetailsManager
 
+    /**
+     * Attempts to parse the User information from a token.
+     *
+     * @param token The authentication token to parse
+     * @returns A Spring User object containing the user information loaded from the database or null if the token or username is invalid.
+     */
     fun parseUserFromToken(token: String): User? {
         val username = Jwts.parser()
                 .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .body
                 .subject ?: return null
-        return userService.loadUserByUsername(username) as User
+        val user = try {
+            userService.loadUserByUsername(username) as User
+        } catch (e:UsernameNotFoundException){
+            null
+        }
+        if (user != null){
+            //verify that user is not disabled
+            if (user.isEnabled){
+                return user
+            } else {
+                return null
+            }
+        } else {
+            return null
+        }
     }
+
+    /**
+     * Verifies that a token is not expired.
+     *
+     * @param token The authentication token to parse
+     * @returns true if the token is expired, false if the token is still valid.
+     */
     fun isTokenExpired(token: String):Boolean{
         val expiration = Jwts.parser()
                 .setSigningKey(secret)
@@ -64,9 +98,19 @@ class TokenHandler {
         return expiration < Date()
     }
 
-    fun createTokenForUser(user: User): String {
+    /**
+     * Generates a new token for a user setting the expiration date/time based on the application settings.
+     *
+     * @param user A Spring User object containing the
+     */
+    fun createTokenForUser(user: User): String? {
+        try{
+            userService.loadUserByUsername(user.username)
+        } catch (e: UsernameNotFoundException){
+            return null
+        }
         val now = Date()
-        val expiration = Date(now.time + expiration)
+        val expiration = Date(now.time + expirationTime)
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(user.username)

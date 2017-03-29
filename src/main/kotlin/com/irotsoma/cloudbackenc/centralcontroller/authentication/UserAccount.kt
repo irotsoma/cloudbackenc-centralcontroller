@@ -30,6 +30,13 @@ import javax.persistence.*
  * JPA User Account Object
  *
  * @author Justin Zak
+ * @property id Database-generated ID for the user.
+ * @property username Username of the user.
+ * @property password User password encoded using BCrypt.
+ * @property email (Optional) email address for the user to receive notifications.
+ * @property enabled Indicates if a user is enabled in the system.
+ * @property roleList A list of roles for the user.
+ * @property roles roleList translated into CloudBackEncRoles
  */
 @Entity
 @Table(name = "user_account")
