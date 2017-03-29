@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest
 
 
 /**
- * Authentication filter that validates a token using a [TokenAuthenticationService]
+ * Authentication filter that validates a token using a TokenAuthenticationService
  *
  * @author Justin Zak
  */
@@ -40,7 +40,7 @@ class StatelessAuthenticationFilter : GenericFilterBean() {
     private lateinit var tokenAuthenticationService: TokenAuthenticationService
 
     /**
-     * Calls authentication service to verify if the request has a valid token and then coninues the filter chain.
+     * Calls authentication service to verify if the request has a valid token and then continues the filter chain.
      *
      * @param request REST request to check for authentication header.
      * @param response REST response object

@@ -42,11 +42,11 @@ class TokenAuthenticationService {
      * Validates authentication token in an Authentication: Bearer header.
      *
      * @param request REST request to validate.
-     * @returns An Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
+     * @return A Spring Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
      */
     fun getAuthentication(request: HttpServletRequest): Authentication? {
         //parse authorization bearer header
-        val token = request.getHeader(HttpHeaders.AUTHORIZATION)
+        val token = request.getHeader(HttpHeaders.AUTHORIZATION) ?: return null
         val splitToken = token.split(' ')
         if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER"){
             //verify token is not expired

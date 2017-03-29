@@ -54,7 +54,7 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
     var id: Long? = null
     @JsonIgnore
     @Column(name="password", nullable=false)
-    var password: String? = password
+    var password: String? = PASSWORD_ENCODER.encode(password)
         set(value) {
             field = PASSWORD_ENCODER.encode(value)
         }

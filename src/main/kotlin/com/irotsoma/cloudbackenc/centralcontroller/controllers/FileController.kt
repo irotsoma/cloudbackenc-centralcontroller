@@ -61,7 +61,7 @@ class FileController {
      *
      * @param fileUuid Send only if this is to be a new version for an existing file.  Returned from previous call to this controller.
      * @param file The file to send to the cloud service.
-     * @returns A UUID for the file.  Must be sent in subsequent calls to identify a file as a new version of an existing file rather than a new file.
+     * @return A UUID for the file.  Must be sent in subsequent calls to identify a file as a new version of an existing file rather than a new file.
      */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("file") file: MultipartFile): ResponseEntity<UUID> {

@@ -144,12 +144,6 @@ apply plugin: 'org.jetbrains.dokka'
 dokka {
     outputFormat = 'javadoc'
     outputDirectory = "$buildDir/docs/javadoc"
-    linkMapping {
-        dir = "src/main/kotlin"
-        url = "https://github.com/cy6erGn0m/vertx3-lang-kotlin/blob/master/src/main/kotlin"
-        suffix = "#L"
-    }
-    sourceDirs = files('src/main/kotlin')
 }
 task javadocJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'

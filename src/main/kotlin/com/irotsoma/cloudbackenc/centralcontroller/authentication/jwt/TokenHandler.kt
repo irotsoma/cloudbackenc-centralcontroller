@@ -58,7 +58,7 @@ class TokenHandler {
      * Attempts to parse the User information from a token.
      *
      * @param token The authentication token to parse
-     * @returns A Spring User object containing the user information loaded from the database or null if the token or username is invalid.
+     * @return A Spring User object containing the user information loaded from the database or null if the token or username is invalid.
      */
     fun parseUserFromToken(token: String): User? {
         val username = Jwts.parser()
@@ -87,7 +87,7 @@ class TokenHandler {
      * Verifies that a token is not expired.
      *
      * @param token The authentication token to parse
-     * @returns true if the token is expired, false if the token is still valid.
+     * @return true if the token is expired, false if the token is still valid.
      */
     fun isTokenExpired(token: String):Boolean{
         val expiration = Jwts.parser()

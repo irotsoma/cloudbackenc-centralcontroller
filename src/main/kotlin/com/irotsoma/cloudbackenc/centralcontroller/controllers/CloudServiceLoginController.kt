@@ -64,7 +64,7 @@ class CloudServiceLoginController {
      *
      * @param uuid The UUID of the cloud service extension.
      * @param user A CloudServiceUser object that contains the user information for the cloud service.
-     * @returns CloudServiceUser.STATE value indicating the login state.
+     * @return CloudServiceUser.STATE value indicating the login state.
      */
     @RequestMapping("cloud-services/login/{uuid}", method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {

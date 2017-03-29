@@ -69,15 +69,6 @@ class UserController {
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalClassPartsProvider.None>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val locale = LocaleContextHolder.getLocale()
-        try {
-            val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-            if (!currentUser.authorities.contains(GrantedAuthority { CloudBackEncRoles.ROLE_ADMIN.name })){
-                return ResponseEntity(HttpStatus.FORBIDDEN)
-            }
-        } catch (e: Exception){
-            return ResponseEntity(HttpStatus.FORBIDDEN)
-        }
-
         //check to see if there is a duplicate user
         if (userAccountDetailsManager.userRepository.findByUsername(user.username) != null){
             throw DuplicateUserException()
@@ -85,7 +76,7 @@ class UserController {
 
         //TODO: check format of user ID which must contain only certain characters (probably alphanumeric plus _ and -)
         //TODO: check password format based on configurable pattern in properties file
-        if (user.email != null) {
+        if (!user.email.isNullOrBlank()) {
             if (!EmailValidator.getInstance().isValid(user.email)) {
                 throw InvalidEmailAddressException()
             }
@@ -93,22 +84,19 @@ class UserController {
         //create and save new user
         val newUserAccount = UserAccount(user.username, user.password,user.email, user.enabled, user.roles)
         userAccountDetailsManager.userRepository.saveAndFlush(newUserAccount)
-        //TODO: email user
-        if (user.email != null) {
+        if (!user.email.isNullOrBlank()) {
             val mail = javaMailSender.createMimeMessage()
             try {
                 val helper = MimeMessageHelper(mail, true)
                 helper.setTo(user.email)
                 helper.setSubject(messageSource.getMessage("centralcontroller.user.controller.registration.email.subject", null, locale))
                 helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.username), locale))
+                javaMailSender.send(mail)
             } catch (e: MessagingException) {
                 e.printStackTrace() //TODO: create a custom exception here
-            } finally {
             }
-            javaMailSender.send(mail)
-        }
-        //TODO: add email validation step
 
+        }
         //return the path to the user id
         val responseLocation = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(user.username)
         val headers = HttpHeaders()

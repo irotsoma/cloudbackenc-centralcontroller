@@ -55,7 +55,7 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity){
         http
             .authorizeRequests()
-                .antMatchers("/console/**").permitAll() //TODO: turn off access to H2 console
+                .antMatchers("/h2-console/**").permitAll() //TODO: turn off access to H2 console
                 .antMatchers(HttpMethod.GET,"/cloud-services").permitAll() //allow access to list of installed cloud services
                 .anyRequest().authenticated() //but anything else requires authentication
                 .and()
