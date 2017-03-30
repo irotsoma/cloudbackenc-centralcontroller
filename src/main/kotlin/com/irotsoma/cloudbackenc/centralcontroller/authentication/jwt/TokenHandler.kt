@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.common.AuthenticationToken
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,7 +104,7 @@ class TokenHandler {
      *
      * @param user A Spring User object containing the
      */
-    fun createTokenForUser(user: User): String? {
+    fun createTokenForUser(user: User): AuthenticationToken? {
         try{
             userService.loadUserByUsername(user.username)
         } catch (e: UsernameNotFoundException){
@@ -111,12 +112,12 @@ class TokenHandler {
         }
         val now = Date()
         val expiration = Date(now.time + expirationTime)
-        return Jwts.builder()
+        return AuthenticationToken(Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setSubject(user.username)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(SignatureAlgorithm.HS512, secret)
-                .compact()
+                .compact(), expiration)
     }
 }

@@ -59,7 +59,7 @@ class AuthTokenController {
     fun getTokenForOther(@PathVariable username: String): ResponseEntity<AuthenticationToken>{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(username) as User)
         if (token!=null) {
-            return ResponseEntity(AuthenticationToken(token), HttpStatus.OK)
+            return ResponseEntity(token, HttpStatus.OK)
         } else {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
@@ -74,7 +74,7 @@ class AuthTokenController {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(authorizedUser.name) as User)
         if (token!=null) {
-            return ResponseEntity(AuthenticationToken(token), HttpStatus.OK)
+            return ResponseEntity(token, HttpStatus.OK)
         } else {
             throw AuthenticationException()
         }
