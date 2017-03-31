@@ -20,6 +20,7 @@ package com.irotsoma.cloudbackenc.centralcontroller
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 
 /**
  * Primary class
@@ -27,6 +28,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
  * @author Justin Zak
  */
 @SpringBootApplication
+@EnableScheduling
 class CentralController
 
 /**

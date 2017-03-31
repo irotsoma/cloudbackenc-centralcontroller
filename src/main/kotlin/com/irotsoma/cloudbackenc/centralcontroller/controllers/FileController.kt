@@ -21,6 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import mu.KLogging
@@ -90,14 +91,10 @@ class FileController {
                         } else {
                             val cloudServiceFactory = cloudServiceFactoryRepository.cloudServiceExtensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
                             if (cloudServiceFactory == null) {
-                                //TODO: handle case where plugin is not installed or uuid is not valid
-
-
+                                throw InvalidCloudServiceUUIDException()
                             } else {
                                 //TODO: create proper exception when path is null
                                 //delete the file using the plugin service
-
-                                //TODO: make these async
                                 val deleteSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
                                 if (deleteSuccess) {
                                     //delete the entry from the database
@@ -109,16 +106,14 @@ class FileController {
                 }
             }
         } else {
-            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), userId = currentUser.id!!, cloudServiceFileList = null)
+            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), userId = currentUser.id, cloudServiceFileList = null)
             fileRepository.saveAndFlush(fileObject)
         }
         val fileDistributor = FileDistributor()
-        val serviceToSendTo = fileDistributor.determineBestLocation(file.size)
-        val cloudServiceFactory = cloudServiceFactoryRepository.cloudServiceExtensions[serviceToSendTo]
-
+        val cloudServiceFactory = fileDistributor.determineBestLocation(currentUser, file.size)
 
         if (cloudServiceFactory == null) {
-            //TODO: handle case where plugin is not installed or uuid is not valid
+            //TODO: handle case where no cloud services have space available and/or error occurred
 
 
         } else {
@@ -126,19 +121,14 @@ class FileController {
             file.transferTo(tempFile)
             //Make the path from the fileUuid + version number
             val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}"
-            //TODO: make these async
-            val uploadSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
+            val uploadSuccess = cloudServiceFactory.cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
-                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, serviceToSendTo.toString(), cloudServiceFilePath,Date())
+                //if the file upload was successful, add the entry to the database
+                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUUID.toString(), cloudServiceFilePath, Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()
         }
-
-
-        //TODO: wait for async processes (delete and upload as applicable) until timeout expires
-
-
         return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.OK)
     }
 

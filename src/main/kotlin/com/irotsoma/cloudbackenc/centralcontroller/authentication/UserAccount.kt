@@ -51,7 +51,7 @@ class UserAccount(@Column(name = "username", nullable = false) var username: Str
     }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+    var id: Long = -1
     @JsonIgnore
     @Column(name="password", nullable=false)
     var password: String? = PASSWORD_ENCODER.encode(password)

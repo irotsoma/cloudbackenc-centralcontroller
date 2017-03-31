@@ -19,9 +19,13 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.files
 
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -38,17 +42,41 @@ class FileDistributor {
     @Autowired
     lateinit var userCloudServiceRepository: UserCloudServiceRepository
 
-
-    fun determineBestLocation(fileSize: Long): UUID?{
-        //TODO: Implement and return cloud service uuid
-
+    @Autowired
+    private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
 
+    companion object{
+        //check every 12 hours
+        const val delay = 43200000L
+    }
+    val spaceAvailable = HashMap<Long,HashMap<Long,CloudServiceFactory>>()
+    fun determineBestLocation(user: UserAccount, fileSize: Long): CloudServiceFactory?{
+        // currently just finds the service with the most space and returns it as long as it is more than the fileSize
+        //TODO: Implement more logic such as service max file size, etc
+        val sortedSpaceAvailable = spaceAvailable[user.id]?.toSortedMap()
 
+        return if (sortedSpaceAvailable?.lastKey() ?: 0 >fileSize) sortedSpaceAvailable?.get(sortedSpaceAvailable.lastKey()) else null
+    }
 
-
-
-        return null
+    @Scheduled(fixedDelay = delay)
+    fun checkAvailableSpacePeriodically(){
+        spaceAvailable.clear()
+        for (userId in userCloudServiceRepository.findDistinctUserId() ?: emptyList()) {
+            spaceAvailable[userId] = HashMap<Long,CloudServiceFactory>()
+            for ((key, value) in cloudServiceFactoryRepository.cloudServiceExtensions) {
+                try {
+                    val factory = value.newInstance()
+                    if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUUID.toString()) != null) {
+                        val user = userAccountDetailsManager.userRepository.findById(userId)
+                        if (user != null) {
+                            val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
+                            spaceAvailable[userId]!!.plus(Pair(space, factory))
+                        }
+                    }
+                } catch(ignore:Exception){}
+            }
+        }
     }
 
 }

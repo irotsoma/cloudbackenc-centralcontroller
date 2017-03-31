@@ -30,4 +30,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface UserCloudServiceRepository : JpaRepository<UserCloudService, Long> {
     fun findByUserId(userId: Long) : List<UserCloudService>?
     fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: String): UserCloudService?
+    fun findDistinctUserId(): List<Long>?
 }

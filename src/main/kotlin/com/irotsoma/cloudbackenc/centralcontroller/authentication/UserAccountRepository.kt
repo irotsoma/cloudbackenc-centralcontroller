@@ -28,4 +28,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface UserAccountRepository : JpaRepository<UserAccount, Long> {
     fun findByUsername(username: String): UserAccount?
     fun findByEmail (email: String): UserAccount?
+    fun findById(id:Long): UserAccount?
 }
