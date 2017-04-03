@@ -25,5 +25,5 @@ import org.springframework.data.jpa.repository.JpaRepository
  * JPA repository for tracked files.
  */
 interface FileRepository : JpaRepository<FileObject, Long> {
-    fun findByFileUuid(fileUuid: String): FileObject?
+    fun findByFileUuidOrderByVersionAsc(fileUuid: String): FileObject?
 }

@@ -35,10 +35,10 @@ import javax.persistence.*
 @Table(name="cloud_service_file")
 class CloudServiceFileObject(@Column(name="file_uuid", nullable = false) var fileUuid: String,
                              @Column(name="cloud_service_uuid", nullable = false) var cloudServiceUuid: String,
-                             @Column(name="locator", nullable = false)var locator: String,
-                             @Column(name="last_updated", nullable = false) var lastUpdated: Date) {
+                             @Column(name="locator", nullable = false) var locator: String,
+                             @Column(name="version", nullable = false) var version: Int,
+                             @Column(name="last_updated", nullable = false) var lastUpdated: Date){
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
-
+    var id: Long = -1
 }

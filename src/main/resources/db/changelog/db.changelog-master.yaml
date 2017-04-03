@@ -176,6 +176,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: version
+                  type: int
+                  contraints:
+                    nullable: false
+              - column:
                   name: lastUpdated
                   type: date
                   constraints:

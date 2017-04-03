@@ -38,6 +38,6 @@ class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false
 
                  @ElementCollection(fetch = FetchType.EAGER)
                  @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_uuid")))
-                 @OrderBy("last_updated DESC")
+                 @OrderBy("version ASC")
                  var cloudServiceFileList: List<CloudServiceFileObject>?
 )

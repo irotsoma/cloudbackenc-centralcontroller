@@ -21,7 +21,6 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import mu.KLogging
@@ -69,36 +68,49 @@ class FileController {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-        var fileObject = if (fileUuid != null) {
-            fileRepository.findByFileUuid(fileUuid.toString())
+        var fileObject: FileObject? = if (fileUuid != null) {
+            fileRepository.findByFileUuidOrderByVersionAsc(fileUuid.toString())
         } else {
             null
         }
 
         if (fileObject!=null){
-            if (((fileObject.cloudServiceFileList?.size ?:0) > cloudServiceFilesSettings.maxFileVersions) && ((fileObject.cloudServiceFileList?.size ?: 0) !=0) ) {
-                //if there are already too many file versions, then delete the oldest one(s) (last one(s) due to order by statement)
-                for (x in fileObject.cloudServiceFileList!!.size - 1 downTo cloudServiceFilesSettings.maxFileVersions) {
+            //
+            val modifiableList = ArrayList(fileObject.cloudServiceFileList)
+            if ((modifiableList.size > cloudServiceFilesSettings.maxFileVersions) && (modifiableList.size != 0)) {
+                //if there are already too many file versions, then delete the oldest one(s) (first one(s) due to order by statement)
+                var indexToDelete = 0
+                while ((modifiableList.size > cloudServiceFilesSettings.maxFileVersions) && (indexToDelete < modifiableList.size)){
                     //find the cloud service file object id
-                    val deleteItem = fileObject.cloudServiceFileList!![x].id ?: -1
+                    val deleteItem = modifiableList[indexToDelete].id
                     if (deleteItem > 0) {
                         //find the object to be deleted
                         val fileToDelete = cloudServiceFileRepository.findById(deleteItem)
                         if (fileToDelete == null) {
-                            //TODO: handle odd case where the item is not found (exception probably)
-
-
+                            //handle error in finding file in database gracefully by skipping deleting the file.
+                            logger.error("Unable to find file with ID: $deleteItem")
+                            indexToDelete++
                         } else {
-                            val cloudServiceFactory = cloudServiceFactoryRepository.cloudServiceExtensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
-                            if (cloudServiceFactory == null) {
-                                throw InvalidCloudServiceUUIDException()
+                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.cloudServiceExtensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
+                            if (cloudServiceFactoryClass == null) {
+                                logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.cloudServiceUuid}")
+                                indexToDelete++
                             } else {
-                                //TODO: create proper exception when path is null
                                 //delete the file using the plugin service
-                                val deleteSuccess = cloudServiceFactory.newInstance().cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
-                                if (deleteSuccess) {
-                                    //delete the entry from the database
-                                    cloudServiceFileRepository.delete(deleteItem)
+                                try {
+                                    val factory = cloudServiceFactoryClass.newInstance()
+                                    val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
+                                    if (deleteSuccess) {
+                                        //delete the entry from the database
+                                        cloudServiceFileRepository.delete(deleteItem)
+                                        modifiableList.removeAt(indexToDelete)
+                                    } else {
+                                        logger.error("Unable to delete file from cloud service.  Cloud Service: ${factory.extensionName};  File Locator: ${fileToDelete.locator}")
+                                        indexToDelete++
+                                    }
+                                } catch (e: Exception){
+                                    logger.error("Unable to delete file from cloud service.  Factory: ${cloudServiceFactoryClass.canonicalName};  File locator: ${fileToDelete.locator}")
+                                    indexToDelete++
                                 }
                             }
                         }
@@ -113,29 +125,22 @@ class FileController {
         val cloudServiceFactory = fileDistributor.determineBestLocation(currentUser, file.size)
 
         if (cloudServiceFactory == null) {
-            //TODO: handle case where no cloud services have space available and/or error occurred
-
-
+            logger.error("Unable find a cloud service to which to upload file with uuid: ${fileObject.fileUuid}.")
+            return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.INTERNAL_SERVER_ERROR)
         } else {
             val tempFile = createTempFile(fileObject.fileUuid)
             file.transferTo(tempFile)
             //Make the path from the fileUuid + version number
-            val cloudServiceFilePath = "/${fileObject.fileUuid}/${(fileObject.cloudServiceFileList?.size ?:0)+1}"
+            val fileVersion = (fileObject.cloudServiceFileList?.last()?.version ?:0) +1
+            val cloudServiceFilePath = "/${fileObject.fileUuid}/$fileVersion"
             val uploadSuccess = cloudServiceFactory.cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
                 //if the file upload was successful, add the entry to the database
-                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUUID.toString(), cloudServiceFilePath, Date())
+                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUUID.toString(), cloudServiceFilePath,fileVersion, Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()
         }
         return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.OK)
     }
-
-
-
-
-
-
-
 }
