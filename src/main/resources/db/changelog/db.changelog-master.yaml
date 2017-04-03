@@ -178,7 +178,7 @@ databaseChangeLog:
               - column:
                   name: version
                   type: int
-                  contraints:
+                  constraints:
                     nullable: false
               - column:
                   name: lastUpdated

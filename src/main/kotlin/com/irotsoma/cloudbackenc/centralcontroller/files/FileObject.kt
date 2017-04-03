@@ -37,7 +37,7 @@ class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false
                  var userId: Long,
 
                  @ElementCollection(fetch = FetchType.EAGER)
-                 @CollectionTable(name = "file_cloud_service", joinColumns = arrayOf(JoinColumn(name = "file_uuid")))
+                 @CollectionTable(name = "cloud_service_file", joinColumns = arrayOf(JoinColumn(name = "file_uuid")))
                  @OrderBy("version ASC")
                  var cloudServiceFileList: List<CloudServiceFileObject>?
 )

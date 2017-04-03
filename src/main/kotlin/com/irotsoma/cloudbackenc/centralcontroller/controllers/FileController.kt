@@ -69,7 +69,7 @@ class FileController {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         var fileObject: FileObject? = if (fileUuid != null) {
-            fileRepository.findByFileUuidOrderByVersionAsc(fileUuid.toString())
+            fileRepository.findByFileUuid(fileUuid.toString())
         } else {
             null
         }

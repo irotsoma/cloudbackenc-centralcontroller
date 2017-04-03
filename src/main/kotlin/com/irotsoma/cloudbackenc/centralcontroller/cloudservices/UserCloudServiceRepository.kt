@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 /**
  * JPA repository for link between users and cloud services.
@@ -30,5 +31,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface UserCloudServiceRepository : JpaRepository<UserCloudService, Long> {
     fun findByUserId(userId: Long) : List<UserCloudService>?
     fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: String): UserCloudService?
+    @Query("SELECT DISTINCT userId FROM UserCloudService")
     fun findDistinctUserId(): List<Long>?
 }
