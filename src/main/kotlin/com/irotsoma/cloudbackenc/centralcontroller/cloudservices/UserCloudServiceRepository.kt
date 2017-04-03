@@ -30,7 +30,8 @@ import org.springframework.data.jpa.repository.Query
 
 interface UserCloudServiceRepository : JpaRepository<UserCloudService, Long> {
     fun findByUserId(userId: Long) : List<UserCloudService>?
-    fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: String): UserCloudService?
+    fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: String): List<UserCloudService>?
+    fun findByUserIdAndCloudServiceUuidAndCloudServiceUserId(userId: Long, cloudServiceUuid: String, cloudServiceUserId: String?): UserCloudService?
     @Query("SELECT DISTINCT userId FROM UserCloudService")
     fun findDistinctUserId(): List<Long>?
 }

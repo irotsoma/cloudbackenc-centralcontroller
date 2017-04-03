@@ -65,7 +65,7 @@ class CloudServicesListController {
         return cloudServiceFactoryRepository.cloudServiceNames
     }
     /**
-     * GET method for retrieving a list of Cloud Service Extensions currently installed with which the user has previously interacted.
+     * GET method for retrieving a list of Cloud Service Extensions currently installed which the user logged in (though the login may have expired).
      */
     @RequestMapping("/cloud-services/{username}",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
@@ -80,9 +80,9 @@ class CloudServicesListController {
             return ResponseEntity(null, HttpStatus.FORBIDDEN)
         }
 
-        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id!!) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
-        val cloudServices = cloudServiceFactoryRepository.cloudServiceNames.filter{ it.uuid in userCloudServiceList.map{UUID.fromString(it.cloudServiceUuid)}}
-
+        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
+        //return only services that are currently installed filtered to those where the user is currently logged in
+        val cloudServices = cloudServiceFactoryRepository.cloudServiceNames.filter{ it.uuid in userCloudServiceList.filter{it.loggedIn}.map{UUID.fromString(it.cloudServiceUuid)}}
 
         return ResponseEntity(CloudServiceExtensionList(ArrayList(cloudServices)), HttpStatus.OK)
     }

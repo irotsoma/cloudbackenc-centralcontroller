@@ -104,7 +104,7 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
                     val mapper = ObjectMapper().registerModule(KotlinModule())
                     val mapperData: CloudServiceExtensionConfig = mapper.readValue(jsonValue)
                     //add values to maps for consumption later
-                    val cloudServiceUUID = UUID.fromString(mapperData.serviceUUID)
+                    val cloudServiceUUID = UUID.fromString(mapperData.serviceUuid)
                     if (factoryClasses.containsKey(cloudServiceUUID)){
                         //if the UUID is already in the map check to see if it's a newer version.  If so replace, the existing one, otherwise ignore the new one.
                         if (factoryClasses[cloudServiceUUID]!!.version < mapperData.releaseVersion){

@@ -36,7 +36,7 @@ import java.util.*
  */
 @Lazy
 @Component
-class CloudServiceAuthenticationCompleteListener(user: CloudBackEncUser) : CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(user: CloudBackEncUser, override var cloudServiceUsername: String?) : CloudServiceAuthenticationRefreshListener {
     /**
      * CloudBackEncUser instance that identifies the internal user associated with the listener.
      */
@@ -55,7 +55,10 @@ class CloudServiceAuthenticationCompleteListener(user: CloudBackEncUser) : Cloud
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         if (user != null) {
             val userId = userAccountDetailsManager.userRepository.findByUsername(user!!.username)?.id ?: return
-            val cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, cloudServiceUuid.toString()) ?: return
+            var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUserId(userId, cloudServiceUuid.toString(),cloudServiceUsername)
+            if (cloudServiceUserInfo == null){
+                cloudServiceUserInfo = UserCloudService(cloudServiceUuid.toString(), userId, cloudServiceUsername)
+            }
             cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
             userCloudServiceRepository.save(cloudServiceUserInfo)
         }

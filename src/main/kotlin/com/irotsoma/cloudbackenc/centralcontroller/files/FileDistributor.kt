@@ -67,7 +67,7 @@ class FileDistributor {
             for ((key, value) in cloudServiceFactoryRepository.cloudServiceExtensions) {
                 try {
                     val factory = value.newInstance()
-                    if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUUID.toString()) != null) {
+                    if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid.toString()) != null) {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
                         if (user != null) {
                             val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())

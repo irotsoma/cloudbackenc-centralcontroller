@@ -82,7 +82,7 @@ class CloudServiceLoginController {
         }
         //launch extension's login service
         try {
-            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser())
+            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), user.username)
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
             logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}"}

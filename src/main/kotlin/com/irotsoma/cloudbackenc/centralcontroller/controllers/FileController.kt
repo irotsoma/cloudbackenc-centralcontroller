@@ -136,7 +136,7 @@ class FileController {
             val uploadSuccess = cloudServiceFactory.cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
                 //if the file upload was successful, add the entry to the database
-                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUUID.toString(), cloudServiceFilePath,fileVersion, Date())
+                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUuid.toString(), cloudServiceFilePath,fileVersion, Date())
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()
