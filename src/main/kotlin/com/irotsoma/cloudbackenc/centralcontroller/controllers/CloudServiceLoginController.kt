@@ -21,6 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
@@ -57,6 +58,8 @@ class CloudServiceLoginController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
+    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
+    @Autowired
     lateinit var messageSource: MessageSource
 
     /**
@@ -81,8 +84,10 @@ class CloudServiceLoginController {
             logger.warn{messageSource.getMessage("centralcontroller.cloudservices.error.callback.invalid", null, locale)}
         }
         //launch extension's login service
+        //TODO: figure out how to make this async with a timeout
         try {
-            authenticationService.cloudServiceAuthenticationRefreshListener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), user.username)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), user.username, userAccountDetailsManager, userCloudServiceRepository)
+            authenticationService.cloudServiceAuthenticationRefreshListener = listener
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
             logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}"}
@@ -91,7 +96,7 @@ class CloudServiceLoginController {
         val status: HttpStatus =
             when(response){
                 CloudServiceUser.STATE.LOGGED_IN -> HttpStatus.OK
-                CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.PROCESSING
+                CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
                 else -> HttpStatus.BAD_REQUEST
             }
 

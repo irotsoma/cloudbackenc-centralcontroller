@@ -34,7 +34,7 @@ import javax.persistence.*
 @Table(name="user_cloud_service")
 class UserCloudService(@Column(name="cloud_service_uuid",nullable=false) var cloudServiceUuid: String,
                        @Column(name="user_id",nullable=false) var userId: Long,
-                       @Column(name="cloud_service_user_id", nullable = true) var cloudServiceUsername: String?,
+                       @Column(name="cloud_service_username", nullable = true) var cloudServiceUsername: String?,
                        @Column(name="logged_in",nullable=false) var loggedIn: Boolean = false){
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

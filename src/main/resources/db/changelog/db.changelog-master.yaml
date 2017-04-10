@@ -206,6 +206,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: cloud_service_username
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+              - column:
                   name: logged_in
                   type: boolean
                   defaultValueBoolean: false
@@ -223,6 +228,9 @@ databaseChangeLog:
               - column:
                   name: user_id
                   value: 1
+              - column:
+                  name: cloud_service_username
+                  value: 'test'
               - column:
                   name: logged_in
                   value: true
