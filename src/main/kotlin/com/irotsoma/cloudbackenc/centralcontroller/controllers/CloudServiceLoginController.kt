@@ -86,7 +86,7 @@ class CloudServiceLoginController {
         //launch extension's login service
         //TODO: figure out how to make this async with a timeout
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), user.username, userAccountDetailsManager, userCloudServiceRepository)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), if (user.username.isEmpty()){null}else{user.username}, userAccountDetailsManager, userCloudServiceRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
@@ -94,12 +94,33 @@ class CloudServiceLoginController {
             throw CloudServiceException(e.message, e)
         }
         val status: HttpStatus =
-            when(response){
-                CloudServiceUser.STATE.LOGGED_IN -> HttpStatus.OK
-                CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
-                else -> HttpStatus.BAD_REQUEST
-            }
+                when(response){
+                    CloudServiceUser.STATE.LOGGED_IN -> HttpStatus.OK
+                    CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
+                    else -> HttpStatus.BAD_REQUEST
+                }
 
         return ResponseEntity(response, status)
+
     }
+
+    @RequestMapping("cloud-services/logout/{uuid}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    fun logout(@PathVariable(value="uuid")uuid: UUID) : ResponseEntity<CloudServiceUser.STATE> {
+        val locale = LocaleContextHolder.getLocale()
+        val cloudServiceFactory: Class<CloudServiceFactory> = cloudServiceFactoryRepository.cloudServiceExtensions[uuid] ?: throw InvalidCloudServiceUUIDException()
+        val authenticationService = cloudServiceFactory.newInstance().authenticationService
+        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
+
+        try {
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), null, userAccountDetailsManager, userCloudServiceRepository)
+            authenticationService.cloudServiceAuthenticationRefreshListener = listener
+            authenticationService.logout(CloudServiceUser("", null, uuid.toString(), null), currentUser.cloudBackEncUser())
+        } catch (e:Exception ){
+            logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", null, locale)} Error during login process. ${e.message}"}
+            throw CloudServiceException(e.message, e)
+        }
+        return ResponseEntity(CloudServiceUser.STATE.LOGGED_OUT, HttpStatus.OK)
+    }
+
 }

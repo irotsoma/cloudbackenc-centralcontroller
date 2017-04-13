@@ -42,9 +42,9 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         if (user != null) {
             val userId = userAccountDetailsManager.userRepository.findByUsername(user!!.username)?.id ?: return
-            var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),cloudServiceUsername)
+            var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
-                cloudServiceUserInfo = UserCloudService(cloudServiceUuid.toString(), userId, cloudServiceUsername)
+                cloudServiceUserInfo = UserCloudService(cloudServiceUuid.toString(), userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             }
             cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
             userCloudServiceRepository.save(cloudServiceUserInfo)
