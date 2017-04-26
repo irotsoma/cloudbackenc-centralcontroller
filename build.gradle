@@ -3,7 +3,7 @@ buildscript {
     ext.commonVersion = '0.2-SNAPSHOT'
     ext.springBootVersion = '1.5.2.RELEASE'
     ext.tornadofxVersion = '1.6.0'
-    ext.kotlinVersion = '1.1.1'
+    ext.kotlinVersion = '1.1.2'
     ext.apacheCommonsValidatorVersion = '1.6'
     ext.dokkaVersion = '0.9.13'
     ext.liquibaseGradleVersion = '1.2.1'
