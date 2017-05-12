@@ -118,7 +118,7 @@ class FileController {
                 }
             }
         } else {
-            fileObject = FileObject(fileUuid = UUID.randomUUID().toString(), userId = currentUser.id, cloudServiceFileList = null)
+            fileObject = FileObject(fileUuid = UUID.randomUUID(), userId = currentUser.id, cloudServiceFileList = null)
             fileRepository.saveAndFlush(fileObject)
         }
         val fileDistributor = FileDistributor()
@@ -126,9 +126,9 @@ class FileController {
 
         if (cloudServiceFactory == null) {
             logger.error("Unable find a cloud service to which to upload file with uuid: ${fileObject.fileUuid}.")
-            return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity(fileObject.fileUuid, HttpStatus.INTERNAL_SERVER_ERROR)
         } else {
-            val tempFile = createTempFile(fileObject.fileUuid)
+            val tempFile = createTempFile(fileObject.fileUuid.toString())
             file.transferTo(tempFile)
             //Make the path from the fileUuid + version number
             val fileVersion = (fileObject.cloudServiceFileList?.last()?.version ?:0) +1
@@ -141,6 +141,6 @@ class FileController {
             }
             tempFile.deleteOnExit()
         }
-        return ResponseEntity(UUID.fromString(fileObject.fileUuid), HttpStatus.OK)
+        return ResponseEntity(fileObject.fileUuid, HttpStatus.OK)
     }
 }

@@ -19,6 +19,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.files
 
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -31,7 +32,7 @@ import javax.persistence.*
 @Entity
 @Table(name="file")
 class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false)
-                 var fileUuid: String,
+                 var fileUuid: UUID,
 
                  @Column(name="user_id", nullable = false)
                  var userId: Long,

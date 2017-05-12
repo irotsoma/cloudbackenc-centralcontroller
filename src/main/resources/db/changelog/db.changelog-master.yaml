@@ -30,18 +30,18 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: username
-                  type: nvarchar(255)
+                  type: nvarchar(max)
                   constraints:
                     unique: true
                     nullable: false
               - column:
                   name: password
-                  type: nvarchar(255)
+                  type: nvarchar(max)
                   constraints:
                     nullable: false
               - column:
                   name: email
-                  type: nvarchar(255)
+                  type: nvarchar(max)
               - column:
                   name: enabled
                   type: boolean
@@ -65,7 +65,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: role
-                  type: nvarchar(255)
+                  type: nvarchar(max)
                   constraints:
                     nullable: false
   - changeSet:
@@ -141,7 +141,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: file_uuid
-                  type: char(36)
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -162,17 +162,17 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: file_uuid
-                  type: char(36)
+                  type: uuid
                   constraints:
                     nullable: false
               - column:
                   name: cloud_service_uuid
-                  type: char(36)
+                  type: uuid
                   constraints:
                     nullable: false
               - column:
                   name: locator
-                  type: varchar(255)
+                  type: varchar(max)
                   constraints:
                     nullable: false
               - column:
@@ -197,7 +197,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: cloud_service_uuid
-                  type: char(36)
+                  type: uuid
                   constraints:
                     nullable: false
               - column:
@@ -207,7 +207,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: cloud_service_username
-                  type: varchar(100)
+                  type: varchar(max)
                   constraints:
                     nullable: true
               - column:
