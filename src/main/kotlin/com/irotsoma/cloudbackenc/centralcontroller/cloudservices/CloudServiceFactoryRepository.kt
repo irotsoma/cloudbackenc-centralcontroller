@@ -49,6 +49,9 @@ import javax.annotation.PostConstruct
  *
  * @author Justin Zak
  */
+//TODO: make this generic and put it in the common library for use by both encryption and cloud service extensions
+//TODO: refactor to register threads using these classes and allow for reloading them when the jar files change
+
 @Component
 class CloudServiceFactoryRepository : ApplicationContextAware {
     /** kotlin-logging implementation*/

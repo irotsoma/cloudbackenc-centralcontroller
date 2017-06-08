@@ -102,7 +102,7 @@ class TokenHandler {
     /**
      * Generates a new token for a user setting the expiration date/time based on the application settings.
      *
-     * @param user A Spring User object containing the
+     * @param user A Spring User object containing the user for whom to generate the token
      */
     fun createTokenForUser(user: User): AuthenticationToken? {
         try{
