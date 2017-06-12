@@ -95,6 +95,8 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations'
     //h2
     compile 'com.h2database:h2'
+    //mariaDb
+    compile 'org.mariadb.jdbc:mariadb-java-client'
     //liquibase
     compile 'org.liquibase:liquibase-core'
     //apache commons

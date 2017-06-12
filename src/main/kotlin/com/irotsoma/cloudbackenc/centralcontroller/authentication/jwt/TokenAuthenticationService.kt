@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
+/*
  * Created by irotsoma on 3/17/17.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt

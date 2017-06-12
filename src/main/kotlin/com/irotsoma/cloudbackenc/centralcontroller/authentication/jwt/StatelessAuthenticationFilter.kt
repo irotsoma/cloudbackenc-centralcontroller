@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest
 
 
 /**
- * Authentication filter that validates a token using a TokenAuthenticationService
+ * A stateless authentication filter that validates a token using a TokenAuthenticationService
  *
  * @author Justin Zak
  */
