@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.web.bind.annotation.PathVariable
@@ -54,7 +55,7 @@ class AuthTokenController {
      *
      * @param username Username for which the token will be generated.
      */
-    @RequestMapping("/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping("/users/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun getTokenForOther(@PathVariable username: String): ResponseEntity<AuthenticationToken>{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(username) as User)
@@ -69,9 +70,10 @@ class AuthTokenController {
      * GET method which retrieves an auth token for the currently logged in user.  Also can be used to refresh tokens
      * that have not expired yet by logging in with a valid token.
      */
-    @RequestMapping(method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping("/token", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @Secured ("ROLE_USER", "ROLE_ADMIN")
     fun getToken(): ResponseEntity<AuthenticationToken>{
-        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(authorizedUser.name) as User)
         if (token!=null) {
             return ResponseEntity(token, HttpStatus.OK)
@@ -79,5 +81,4 @@ class AuthTokenController {
             throw AuthenticationException()
         }
     }
-
 }

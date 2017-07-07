@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -35,6 +36,9 @@ import javax.servlet.http.HttpServletRequest
 @Component
 class TokenAuthenticationService {
 
+    @Value("\${jwt.disabled}")
+    private var isDisabled: Boolean? = null
+
     @Autowired
     private lateinit var tokenHandler: TokenHandler
 
@@ -45,20 +49,25 @@ class TokenAuthenticationService {
      * @return A Spring Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
      */
     fun getAuthentication(request: HttpServletRequest): Authentication? {
-        //parse authorization bearer header
-        val token = request.getHeader(HttpHeaders.AUTHORIZATION) ?: return null
-        val splitToken = token.split(' ')
-        if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER"){
-            //verify token is not expired
-            if (!tokenHandler.isTokenExpired(splitToken[1])){
-                //parse user from token
-                val user = tokenHandler.parseUserFromToken(splitToken[1]) ?: return null
-                return UserAuthentication(user)
+        if (isDisabled?:false){
+            //if the jwt functionality is disabled in properties just skip this
+            return null
+        } else {
+            //parse authorization bearer header
+            val token = request.getHeader(HttpHeaders.AUTHORIZATION) ?: return null
+            val splitToken = token.split(' ')
+            if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER") {
+                //verify token is not expired
+                if (!tokenHandler.isTokenExpired(splitToken[1])) {
+                    //parse user from token
+                    val user = tokenHandler.parseUserFromToken(splitToken[1]) ?: return null
+                    return UserAuthentication(user)
+                } else {
+                    return null
+                }
             } else {
                 return null
             }
-        } else {
-            return null
         }
     }
 }
