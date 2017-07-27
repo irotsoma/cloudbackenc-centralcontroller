@@ -74,24 +74,24 @@ class CloudServiceFactoryRepository : ApplicationContextAware {
     @PostConstruct
     fun loadDynamicServices() {
         //external config extension directory
-        val extensionsDirectory: File = File(cloudServicesSettings.directory)
-
+        val extensionsDirectory: File? = File(cloudServicesSettings.directory)
 
         //internal resources extension directory (packaged extensions or test extensions)
-        val resourcesExtensionsDirectory: File? = try{ File(javaClass.classLoader?.getResource("extensions")?.file) } catch(e:Exception){ null }
-        if ((!extensionsDirectory.isDirectory || !extensionsDirectory.canRead()) && ((!(resourcesExtensionsDirectory?.isDirectory ?: false) || !(resourcesExtensionsDirectory?.canRead() ?: false)))) {
+        val resourcesExtensionsDirectory: File? = try{ File(javaClass.classLoader.getResource("extensions")?.file) }
+                                                  catch (ignore: NullPointerException) { null }
+        if ((!(extensionsDirectory?.isDirectory ?: false) || !(extensionsDirectory?.canRead() ?: false)) && ((!(resourcesExtensionsDirectory?.isDirectory ?: false) || !(resourcesExtensionsDirectory?.canRead() ?: false)))) {
             logger.warn{"Extensions directory is missing or unreadable."}
-            logger.warn{"Config directory: ${extensionsDirectory.absolutePath}"}
+            logger.warn{"Config directory: ${extensionsDirectory?.absolutePath}"}
             logger.warn{"Resource directory: ${resourcesExtensionsDirectory?.absolutePath}"}
             return
         }
-        logger.trace{"Config extension directory:  ${extensionsDirectory.absolutePath}"}
+        logger.trace{"Config extension directory:  ${extensionsDirectory?.absolutePath}"}
         logger.trace{"Resources extension directory:  ${resourcesExtensionsDirectory?.absolutePath}"}
         val jarURLs : HashMap<UUID,URL> = HashMap()
         val factoryClasses: HashMap<UUID, VersionedExtensionFactoryClass> = HashMap()
 
         //cycle through all files in the extensions directories
-        for (jar in (extensionsDirectory.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
+        for (jar in (extensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>()).plus(resourcesExtensionsDirectory?.listFiles{directory, name -> (!File(directory,name).isDirectory && name.endsWith(".jar"))} ?: arrayOf<File>())) {
             try {
                 logger.info{"Loading extension jar file: ${jar.absolutePath}"}
 
