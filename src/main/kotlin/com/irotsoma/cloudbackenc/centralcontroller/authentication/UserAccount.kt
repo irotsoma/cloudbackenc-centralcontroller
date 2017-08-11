@@ -62,7 +62,7 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = arrayOf(JoinColumn(name = "user_id", referencedColumnName = "id")))
     @Column(name="role")
-    var roleList: List<String>? = roles.map{it.name}
+    private var roleList: List<String>? = roles.map{it.name}
     var roles: List<CloudBackEncRoles>?
         set(value){
             roleList = value?.map{it.name}
