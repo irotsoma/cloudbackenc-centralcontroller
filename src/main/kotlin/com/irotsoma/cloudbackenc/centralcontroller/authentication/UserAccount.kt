@@ -72,7 +72,7 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
                 try {
                     CloudBackEncRoles.valueOf(it)
                 } catch (e:IllegalArgumentException){
-                    logger.debug{"The value $it is not a valid user role for user $username"}
+                    logger.warn{"The value $it is not a valid user role for user $username"}
                     null
                 }
             }
