@@ -40,7 +40,7 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "user_account")
-class UserAccount(@Column(name = "username", nullable = false) var username: String,
+class UserAccount(@Column(name = "username", nullable = false, updatable = false) val username: String,
                   password: String,
                   //TODO: Add validation for email formatting
                   @Column(name = "email", nullable = true) var email: String?,
