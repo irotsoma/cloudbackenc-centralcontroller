@@ -22,6 +22,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
+import mu.KLogging
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import javax.persistence.*
@@ -46,7 +47,7 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
                   @Column(name = "email", nullable = true) var email: String?,
                   @Column(name = "enabled", nullable = false) var enabled: Boolean,
                   roles: List<CloudBackEncRoles>) {
-    companion object {
+    companion object : KLogging() {
         val PASSWORD_ENCODER: PasswordEncoder = BCryptPasswordEncoder()
     }
     @Id
@@ -67,7 +68,14 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
             roleList = value?.map{it.name}
         }
         get(){
-            return roleList?.map{ CloudBackEncRoles.valueOf(it)}
+            return roleList?.mapNotNull {
+                try {
+                    CloudBackEncRoles.valueOf(it)
+                } catch (e:IllegalArgumentException){
+                    logger.debug{"The value $it is not a valid user role for user $username"}
+                    null
+                }
+            }
         }
 
     /**

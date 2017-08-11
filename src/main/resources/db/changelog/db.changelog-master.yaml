@@ -97,6 +97,18 @@ databaseChangeLog:
                   name: role
                   value: ROLE_TEST
         - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: role
+                  value: BADTESTVALUE
+        - insert:
             tableName: user_account
             columns:
               - column:
@@ -113,7 +125,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 2
+                  value: 3
               - column:
                   name: user_id
                   value: 2
@@ -125,7 +137,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 3
+                  value: 4
               - column:
                   name: user_id
                   value: 2
