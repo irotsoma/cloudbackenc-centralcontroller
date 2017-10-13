@@ -55,7 +55,7 @@ class AuthTokenController {
      *
      * @param username Username for which the token will be generated.
      */
-    @RequestMapping("/users/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping("/users/{username}/token", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun getTokenForOther(@PathVariable username: String): ResponseEntity<AuthenticationToken>{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(username) as User)

@@ -64,7 +64,8 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
             .headers()
                 .frameOptions().disable() //needed to get h2 console working
                 .and()
+            //TODO:Add a filter before this that checks for the file controller certificate
+            .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java) //add token authentication filter
             .csrf().disable()
-                .addFilterBefore(statelessAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java) //add token authentication filter
     }
 }
