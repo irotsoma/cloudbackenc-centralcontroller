@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 import javax.mail.MessagingException
 import javax.servlet.http.HttpServletResponse
-import kotlin.reflect.jvm.internal.impl.serialization.deserialization.AdditionalClassPartsProvider
 
 /**
  * REST controller for managing users.
@@ -66,7 +65,7 @@ class UserController {
      */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<AdditionalClassPartsProvider.None>{
+    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<Any>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val locale = LocaleContextHolder.getLocale()
         //check to see if there is a duplicate user
@@ -143,7 +142,7 @@ class UserController {
      */
     @RequestMapping("/{username}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
-    fun deleteUser(@PathVariable username: String) : ResponseEntity<AdditionalClassPartsProvider.None>{
+    fun deleteUser(@PathVariable username: String) : ResponseEntity<Any>{
         val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username)
         userAccountDetailsManager.userRepository.delete(requestedUser)
         return ResponseEntity(HttpStatus.OK)
