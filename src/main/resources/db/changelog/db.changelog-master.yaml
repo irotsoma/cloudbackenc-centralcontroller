@@ -23,25 +23,25 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: int
+                  type: long
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: username
-                  type: nvarchar(max)
+                  type: nvarchar(1023)
                   constraints:
                     unique: true
                     nullable: false
               - column:
                   name: password
-                  type: nvarchar(max)
+                  type: nvarchar(1023)
                   constraints:
                     nullable: false
               - column:
                   name: email
-                  type: nvarchar(max)
+                  type: nvarchar(1023)
               - column:
                   name: enabled
                   type: boolean
@@ -53,25 +53,21 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: int
+                  type: long
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: user_id
-                  type: int
+                  type: long
                   constraints:
                     nullable: false
               - column:
                   name: role
-                  type: nvarchar(max)
+                  type: nvarchar(1023)
                   constraints:
                     nullable: false
-  - changeSet:
-      id: 2
-      author: irotsoma
-      changes:
         - insert:
             tableName: user_account
             columns:
@@ -144,10 +140,6 @@ databaseChangeLog:
               - column:
                   name: role
                   value: ROLE_USER
-  - changeSet:
-      id: 3
-      author: irotsoma
-      changes:
         - createTable:
             tableName: file
             columns:
@@ -159,7 +151,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: user_id
-                  type: int
+                  type: long
                   constraints:
                     nullable: false
         - createTable:
@@ -167,7 +159,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: int
+                  type: long
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -184,12 +176,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: locator
-                  type: varchar(max)
+                  type: varchar(5000)
                   constraints:
                     nullable: false
               - column:
                   name: version
-                  type: int
+                  type: long
                   constraints:
                     nullable: false
               - column:
@@ -202,7 +194,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: int
+                  type: long
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -214,12 +206,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: user_id
-                  type: int
+                  type: long
                   constraints:
                     nullable: false
               - column:
                   name: cloud_service_username
-                  type: varchar(max)
+                  type: varchar(1023)
                   constraints:
                     nullable: true
               - column:
@@ -228,21 +220,3 @@ databaseChangeLog:
                   defaultValueBoolean: false
                   constraints:
                     nullable: false
-        - insert:
-            tableName: user_cloud_service
-            columns:
-              - column:
-                  name: id
-                  value: 1
-              - column:
-                  name: cloud_service_uuid
-                  value: '1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375'
-              - column:
-                  name: user_id
-                  value: 1
-              - column:
-                  name: cloud_service_username
-                  value: 'test'
-              - column:
-                  name: logged_in
-                  value: true

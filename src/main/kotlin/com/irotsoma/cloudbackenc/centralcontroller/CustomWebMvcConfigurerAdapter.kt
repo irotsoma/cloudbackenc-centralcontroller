@@ -51,6 +51,8 @@ class CustomWebMvcConfigurerAdapter : WebMvcConfigurerAdapter() {
      */
     override fun addInterceptors(registry: InterceptorRegistry?) {
         registry?.addInterceptor(LocaleChangeInterceptor())
-        super.addInterceptors(registry)
+        if (registry != null) {
+            super.addInterceptors(registry)
+        }
     }
 }

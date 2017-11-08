@@ -39,6 +39,7 @@ class FileObject(@Id @Column(name = "file_uuid", unique = true, nullable = false
 
                  @ElementCollection(fetch = FetchType.EAGER)
                  @CollectionTable(name = "cloud_service_file", joinColumns = arrayOf(JoinColumn(name = "file_uuid")))
+                 //order by version to allow for adding +1 to get the new version number and for deleting entries above the save limit
                  @OrderBy("version ASC")
                  var cloudServiceFileList: List<CloudServiceFileObject>?
 )

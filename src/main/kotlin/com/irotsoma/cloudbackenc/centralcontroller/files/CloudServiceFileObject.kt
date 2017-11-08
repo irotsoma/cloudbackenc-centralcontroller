@@ -36,7 +36,7 @@ import javax.persistence.*
 class CloudServiceFileObject(@Column(name="file_uuid", nullable = false) var fileUuid: UUID,
                              @Column(name="cloud_service_uuid", nullable = false) var cloudServiceUuid: String,
                              @Column(name="locator", nullable = false) var locator: String,
-                             @Column(name="version", nullable = false) var version: Int,
+                             @Column(name="version", nullable = false) var version: Long,
                              @Column(name="last_updated", nullable = false) var lastUpdated: Date){
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

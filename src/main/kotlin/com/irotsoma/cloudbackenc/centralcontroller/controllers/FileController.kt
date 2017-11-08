@@ -64,7 +64,7 @@ class FileController {
      * @return A UUID for the file.  Must be sent in subsequent calls to identify a file as a new version of an existing file rather than a new file.
      */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
-    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("file") file: MultipartFile): ResponseEntity<UUID> {
+    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("file") file: MultipartFile): ResponseEntity<Pair<UUID,Long>> {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
@@ -126,7 +126,7 @@ class FileController {
 
         if (cloudServiceFactory == null) {
             logger.error("Unable find a cloud service to which to upload file with uuid: ${fileObject.fileUuid}.")
-            return ResponseEntity(fileObject.fileUuid, HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
         } else {
             val tempFile = createTempFile(fileObject.fileUuid.toString())
             file.transferTo(tempFile)
@@ -140,7 +140,8 @@ class FileController {
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()
+            return ResponseEntity(Pair(fileObject.fileUuid,fileVersion), HttpStatus.OK)
         }
-        return ResponseEntity(fileObject.fileUuid, HttpStatus.OK)
+
     }
 }
