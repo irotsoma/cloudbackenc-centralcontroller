@@ -64,9 +64,9 @@ class FileDistributor {
         spaceAvailable.clear()
         for (userId in userCloudServiceRepository.findDistinctUserId() ?: emptyList()) {
             spaceAvailable[userId] = HashMap<Long,CloudServiceFactory>()
-            for ((key, value) in cloudServiceFactoryRepository.cloudServiceExtensions) {
+            for ((key, value) in cloudServiceFactoryRepository.extensions) {
                 try {
-                    val factory = value.newInstance()
+                    val factory = value.factoryClass.newInstance()
                     if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid.toString()) != null) {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
                         if (user != null) {

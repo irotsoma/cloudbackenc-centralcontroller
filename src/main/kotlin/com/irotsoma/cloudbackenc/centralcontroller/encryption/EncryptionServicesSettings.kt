@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017  Irotsoma, LLC
+ * Copyright (C) 2016-2018  Irotsoma, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,26 +13,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-/*
- * Created by irotsoma on 6/28/2016.
- */
-package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
+
+package com.irotsoma.cloudbackenc.centralcontroller.encryption
 
 import com.irotsoma.cloudbackenc.common.ExtensionSettings
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
-
 /**
- * Configuration object for cloud services.
- * Loads application.properties settings that start with "cloudservices".
+ * Created by irotsoma on 8/18/2016.
  *
- * @property directory Directory that stores the cloud service extensions.
- * @property configFileName The name of the config files in the extension jars.
- * @author Justin Zak
+ * Configuration object for encryption services.
+ * Loads application.properties settings that start with "encryptionservices".
  */
 @Configuration
 @EnableConfigurationProperties
-@ConfigurationProperties("cloudservices")
-class CloudServicesSettings : ExtensionSettings()
+@ConfigurationProperties("encryptionservices")
+class EncryptionServicesSettings : ExtensionSettings()

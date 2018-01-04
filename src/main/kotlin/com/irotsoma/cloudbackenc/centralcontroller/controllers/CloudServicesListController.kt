@@ -24,8 +24,10 @@ import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFac
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
+import com.irotsoma.cloudbackenc.common.Extension
+import com.irotsoma.cloudbackenc.common.ExtensionFactory
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionList
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -60,31 +62,36 @@ class CloudServicesListController {
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
-    @RequestMapping("/cloud-services",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
-    @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
-        return cloudServiceFactoryRepository.cloudServiceNames
+    @RequestMapping("/cloud-services",method = [RequestMethod.GET],produces = ["application/json"])
+    @ResponseBody fun getCloudServices() : Map<UUID,String> {
+        val extensions = cloudServiceFactoryRepository.extensions
+        val value = extensions.values
+        val value1: Extension<CloudServiceFactory> = value.first()
+        val value2 = value1.name
+        val next = cloudServiceFactoryRepository.extensions.values.map{ Pair(it.uuid, it.name) }
+        return cloudServiceFactoryRepository.extensions.values.map{ Pair(it.uuid, it.name) }.toMap()
     }
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed which the user logged in (though the login may have expired).
      */
-    @RequestMapping("/cloud-services/{username}",method = arrayOf(RequestMethod.GET),produces = arrayOf("application/json"))
-    fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
+    @RequestMapping("/cloud-services/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
+    fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<Map<UUID,String>> {
         //return an empty list if the user doesn't exist
         val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
         //authorized user requesting the list must either be the user in the request or be an admin
-        if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN)?:false)))
+        if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true)))
         {
-            return ResponseEntity(null, HttpStatus.FORBIDDEN)
+            return ResponseEntity(emptyMap(), HttpStatus.FORBIDDEN)
         }
 
-        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
+        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id) ?: return ResponseEntity(emptyMap(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
-        val cloudServices = cloudServiceFactoryRepository.cloudServiceNames.filter{ it.uuid in userCloudServiceList.filter{it.loggedIn}.map{UUID.fromString(it.cloudServiceUuid)}}
+        val cloudServices = cloudServiceFactoryRepository.extensions.filter{ it.key in userCloudServiceList.filter{it.loggedIn}.map{UUID.fromString(it.cloudServiceUuid)}}
 
-        return ResponseEntity(CloudServiceExtensionList(ArrayList(cloudServices)), HttpStatus.OK)
+        return ResponseEntity(cloudServices.values.map{ Pair(it.uuid, it.name) }.toMap(), HttpStatus.OK)
     }
 
 }

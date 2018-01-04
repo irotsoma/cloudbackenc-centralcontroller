@@ -91,7 +91,7 @@ class FileController {
                             logger.error("Unable to find file with ID: $deleteItem")
                             indexToDelete++
                         } else {
-                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.cloudServiceExtensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
+                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.cloudServiceUuid)]?.factoryClass
                             if (cloudServiceFactoryClass == null) {
                                 logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.cloudServiceUuid}")
                                 indexToDelete++
