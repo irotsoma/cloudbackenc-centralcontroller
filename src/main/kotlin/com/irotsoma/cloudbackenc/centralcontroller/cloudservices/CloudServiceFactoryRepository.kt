@@ -21,7 +21,6 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import com.irotsoma.cloudbackenc.common.ExtensionRepository
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtension
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionConfig
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import mu.KLogging
@@ -42,7 +41,7 @@ import javax.annotation.PostConstruct
  */
 
 @Component
-class CloudServiceFactoryRepository : ExtensionRepository<CloudServiceFactory, CloudServiceExtension<CloudServiceFactory>>(), ApplicationContextAware {
+class CloudServiceFactoryRepository : ExtensionRepository(), ApplicationContextAware {
 
     /** kotlin-logging implementation*/
     companion object: KLogging()

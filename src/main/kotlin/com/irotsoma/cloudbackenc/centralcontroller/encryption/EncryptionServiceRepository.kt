@@ -32,7 +32,7 @@ import javax.annotation.PostConstruct
  */
 
 @Component
-class EncryptionServiceRepository : ExtensionRepository<EncryptionServiceFactory,EncryptionServiceExtension>(), ApplicationContextAware {
+class EncryptionServiceRepository : ExtensionRepository(), ApplicationContextAware {
 
     //inject settings
     @Autowired

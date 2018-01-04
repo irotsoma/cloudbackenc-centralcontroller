@@ -23,6 +23,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.files.*
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
+import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -91,14 +92,14 @@ class FileController {
                             logger.error("Unable to find file with ID: $deleteItem")
                             indexToDelete++
                         } else {
-                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.cloudServiceUuid)]?.factoryClass
+                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
                             if (cloudServiceFactoryClass == null) {
                                 logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.cloudServiceUuid}")
                                 indexToDelete++
                             } else {
                                 //delete the file using the plugin service
                                 try {
-                                    val factory = cloudServiceFactoryClass.newInstance()
+                                    val factory = cloudServiceFactoryClass.newInstance() as CloudServiceFactory
                                     val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
                                     if (deleteSuccess) {
                                         //delete the entry from the database

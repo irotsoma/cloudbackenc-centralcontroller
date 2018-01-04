@@ -72,8 +72,8 @@ class CloudServiceLoginController {
     @RequestMapping("cloud-services/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]?.factoryClass ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = cloudServiceFactory.newInstance().authenticationService
+        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
+        val authenticationService = (cloudServiceFactory.newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val response : CloudServiceUser.STATE
@@ -107,8 +107,8 @@ class CloudServiceLoginController {
     @RequestMapping("cloud-services/logout/{uuid}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     fun logout(@PathVariable(value="uuid")uuid: UUID) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]?.factoryClass ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = cloudServiceFactory.newInstance().authenticationService
+        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
+        val authenticationService = (cloudServiceFactory.newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 

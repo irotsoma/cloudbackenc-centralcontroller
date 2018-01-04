@@ -220,3 +220,21 @@ databaseChangeLog:
                   defaultValueBoolean: false
                   constraints:
                     nullable: false
+        - insert:
+            tableName: user_cloud_service
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: cloud_service_uuid
+                  value: '1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375'
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: cloud_service_username
+                  value: 'test'
+              - column:
+                  name: logged_in
+                  value: true

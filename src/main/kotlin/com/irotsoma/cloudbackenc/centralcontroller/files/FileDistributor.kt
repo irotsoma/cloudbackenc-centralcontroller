@@ -24,6 +24,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
+import com.irotsoma.cloudbackenc.common.encryptionserviceinterface.EncryptionServiceFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -63,10 +64,10 @@ class FileDistributor {
     fun checkAvailableSpacePeriodically(){
         spaceAvailable.clear()
         for (userId in userCloudServiceRepository.findDistinctUserId() ?: emptyList()) {
-            spaceAvailable[userId] = HashMap<Long,CloudServiceFactory>()
+            spaceAvailable[userId] = HashMap()
             for ((key, value) in cloudServiceFactoryRepository.extensions) {
                 try {
-                    val factory = value.factoryClass.newInstance()
+                    val factory = value.newInstance() as CloudServiceFactory
                     if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid.toString()) != null) {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
                         if (user != null) {
