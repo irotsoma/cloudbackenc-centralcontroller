@@ -17,7 +17,9 @@
 package com.irotsoma.cloudbackenc.centralcontroller.encryption
 
 import com.irotsoma.cloudbackenc.common.ExtensionRepository
-import com.irotsoma.cloudbackenc.common.encryptionserviceinterface.*
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionExtension
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -28,27 +30,27 @@ import javax.annotation.PostConstruct
 /**
  * Created by irotsoma on 8/18/2016.
  *
- * Implements the encryption services repository
+ * Implements [ExtensionRepository] for encryption extensions
  */
 
 @Component
-class EncryptionServiceRepository : ExtensionRepository(), ApplicationContextAware {
+class EncryptionExtensionRepository : ExtensionRepository(), ApplicationContextAware {
 
     //inject settings
     @Autowired
-    lateinit var encryptionServicesSettings: EncryptionServicesSettings
+    lateinit var encryptionExtensionSettings: EncryptionExtensionSettings
 
     //application context should be set by Spring
     lateinit var applicationContext : ConfigurableApplicationContext
     override fun setApplicationContext(applicationContext: ApplicationContext?) {
-        this.applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw EncryptionServiceException("Application context in EncryptionServiceRepository is null.")
+        this.applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw EncryptionException("Application context in EncryptionExtensionRepository is null.")
     }
 
     @PostConstruct
     fun configure(){
-        extensionSettings = encryptionServicesSettings
-        parentClassLoader = applicationContext.classLoader ?: throw EncryptionServiceException("Application Classloader in EncryptionServiceRepository is null.")
-        loadDynamicServices<EncryptionServiceFactory,EncryptionServiceExtensionConfig>()
+        extensionSettings = encryptionExtensionSettings
+        parentClassLoader = applicationContext.classLoader ?: throw EncryptionException("Application Classloader in EncryptionExtensionRepository is null.")
+        loadDynamicServices<EncryptionFactory,EncryptionExtension>()
     }
 }
 

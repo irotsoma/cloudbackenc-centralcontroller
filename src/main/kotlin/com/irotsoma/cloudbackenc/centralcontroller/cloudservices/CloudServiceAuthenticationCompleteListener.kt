@@ -21,8 +21,8 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceAuthenticationRefreshListener
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceAuthenticationRefreshListener
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import java.util.*
 
 /**

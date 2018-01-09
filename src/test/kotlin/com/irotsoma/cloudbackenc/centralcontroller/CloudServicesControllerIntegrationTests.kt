@@ -19,9 +19,9 @@
 package com.irotsoma.cloudbackenc.centralcontroller
 
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionConfig
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionConfigList
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtension
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtensionList
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
@@ -30,8 +30,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.*
 import org.springframework.test.context.junit4.SpringRunner
-import java.util.*
-import kotlin.collections.HashMap
 
 /**
  * Integration tests for cloud services list controllers.  Assumes Google Drive extension is installed as noted in comments.
@@ -60,13 +58,13 @@ open class CloudServicesControllerIntegrationTests {
             protocol = "http"
             restTemplate = TestRestTemplate("test", "insecurepassword")
         }
-        val testValue = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services", CloudServiceExtensionConfigList()::class.java)
+        val testValue = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services", CloudServiceExtensionList()::class.java)
         assert(testValue.statusCode==HttpStatus.OK)
-        val expected =CloudServiceExtensionConfig("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
+        val expected =CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
         //below is only valid when google drive plugin is installed in extensions folder
         assert(testValue.body.contains(expected))
 
-        val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services/test", CloudServiceExtensionConfigList()::class.java)
+        val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port/cloud-services/test", CloudServiceExtensionList()::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
         //below is only valid when google drive plugin is installed in extensions folder
         assert(testValue2.body.contains(expected))

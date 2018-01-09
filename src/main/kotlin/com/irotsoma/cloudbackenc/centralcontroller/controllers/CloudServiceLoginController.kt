@@ -23,9 +23,9 @@ import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAut
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource

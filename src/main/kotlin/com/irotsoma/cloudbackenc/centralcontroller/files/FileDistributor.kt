@@ -23,8 +23,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccount
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
-import com.irotsoma.cloudbackenc.common.encryptionserviceinterface.EncryptionServiceFactory
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

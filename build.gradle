@@ -88,8 +88,8 @@ dependencies {
     optional 'org.springframework.boot:spring-boot-configuration-processor'
     //common classes
     compile "com.irotsoma.cloudbackenc:common:$commonVersion"
-    compile "com.irotsoma.cloudbackenc.common:cloudservicesserviceinterface:$commonVersion"
-    compile "com.irotsoma.cloudbackenc.common:encryptionserviceinterface:$commonVersion"
+    compile "com.irotsoma.cloudbackenc.common:cloudservices:$commonVersion"
+    compile "com.irotsoma.cloudbackenc.common:encryption:$commonVersion"
     //jackson
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
     compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"

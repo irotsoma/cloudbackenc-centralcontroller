@@ -20,9 +20,9 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
  */
 
 import com.irotsoma.cloudbackenc.common.ExtensionRepository
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceExtensionConfig
-import com.irotsoma.cloudbackenc.common.cloudservicesserviceinterface.CloudServiceFactory
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtension
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -59,7 +59,7 @@ class CloudServiceFactoryRepository : ExtensionRepository(), ApplicationContextA
     fun configure(){
         extensionSettings = cloudServicesSettings
         parentClassLoader = applicationContext.classLoader ?: throw CloudServiceException("Application Classloader in CloudServiceRepository is null.")
-        loadDynamicServices<CloudServiceFactory, CloudServiceExtensionConfig>()
+        loadDynamicServices<CloudServiceFactory, CloudServiceExtension>()
     }
  }
 
