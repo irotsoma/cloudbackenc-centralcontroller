@@ -17,7 +17,7 @@
 /*
  * Created by irotsoma on 12/6/16.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.files
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import java.util.*
 import javax.persistence.*

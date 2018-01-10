@@ -17,7 +17,7 @@
 /*
  * Created by irotsoma on 8/15/2016.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.authentication
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
@@ -53,6 +53,7 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = -1
+
     @JsonIgnore
     @Column(name="password", nullable=false)
     var password: String? = PASSWORD_ENCODER.encode(password)
@@ -77,6 +78,10 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
                 }
             }
         }
+
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(name = "default_encryption_profile_id", referencedColumnName = "id")
+    var defaultEncryptionProfile: EncryptionProfile? = null
 
     /**
      * Convenience method that returns a CloudBackEncUser object with the password masked

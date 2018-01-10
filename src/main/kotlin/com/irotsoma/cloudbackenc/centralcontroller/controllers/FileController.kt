@@ -21,18 +21,34 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.files.*
+import com.irotsoma.cloudbackenc.centralcontroller.data.*
+import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
+import com.irotsoma.cloudbackenc.centralcontroller.files.CloudServiceFilesSettings
+import com.irotsoma.cloudbackenc.centralcontroller.files.FileDistributor
+import com.irotsoma.cloudbackenc.common.Utilities.hashFile
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionAlgorithms
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionAsymmetricEncryptionAlgorithms
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionFactory
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricEncryptionAlgorithms
 import mu.KLogging
+import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.File
 import java.nio.file.Paths
+import java.security.Key
+import java.security.KeyFactory
+import java.security.SecureRandom
+import java.security.spec.X509EncodedKeySpec
 import java.util.*
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * A REST controller for interacting with backup files.
@@ -57,6 +73,9 @@ class FileController {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
+    @Autowired
+    private lateinit var encryptionExtensionRepository: EncryptionExtensionRepository
+
     /**
      * Call to send a file to a cloud service.  Can be either a new file or a new version of an existing file.
      *
@@ -65,7 +84,7 @@ class FileController {
      * @return A UUID for the file.  Must be sent in subsequent calls to identify a file as a new version of an existing file rather than a new file.
      */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
-    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("file") file: MultipartFile): ResponseEntity<Pair<UUID,Long>> {
+    @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("hash") hash:String?, @RequestParam("file") file: MultipartFile): ResponseEntity<Pair<UUID,Long>> {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
@@ -76,7 +95,6 @@ class FileController {
         }
 
         if (fileObject!=null){
-            //
             val modifiableList = ArrayList(fileObject.cloudServiceFileList)
             if ((modifiableList.size > cloudServiceFilesSettings.maxFileVersions) && (modifiableList.size != 0)) {
                 //if there are already too many file versions, then delete the oldest one(s) (first one(s) due to order by statement)
@@ -131,13 +149,79 @@ class FileController {
         } else {
             val tempFile = createTempFile(fileObject.fileUuid.toString())
             file.transferTo(tempFile)
-            //Make the path from the fileUuid + version number
-            val fileVersion = (fileObject.cloudServiceFileList?.last()?.version ?:0) +1
+            val originalHash = hashFile(tempFile)
+            if ((!hash.isNullOrEmpty()) && (hash != originalHash)){
+                logger.error("Transferred file does not match hash. File may have been corrupted during transfer.")
+                return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+            val secureRandom = SecureRandom.getInstanceStrong()
+
+            val encryptionUuid = currentUser.defaultEncryptionProfile?.encryptionServiceUuid ?: UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)
+            val encryptionFactory = (encryptionExtensionRepository.extensions[encryptionUuid])?.newInstance() as EncryptionFactory? ?: encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)]?.newInstance() as EncryptionFactory?
+            if (encryptionFactory == null){
+                logger.error("Unable to create the requested or the default encryption factory.")
+                return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+            var encryptionProfile = currentUser.defaultEncryptionProfile
+            if (encryptionProfile == null){
+                //if the user doesn't have a default encryption profile, then use the default settings of the extension
+                logger.warn{"User ${currentUser.username} does not have a default encryption profile.  Using system defaults which may be insecure."}
+                val secretKey = try {
+                    encryptionFactory.encryptionKeyService.generateSymmetricKey()
+                } catch (e: Exception){
+                    logger.error("Unable to generate a key with the default key algorithm using the extension with UUID: ${encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid}")
+                    return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+                }
+                if (secretKey == null){
+                    logger.error("Unable to generate a key with the default key algorithm using the extension with UUID: ${encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid}")
+                    return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+                }
+                val validAlgorithms = try {
+                     EncryptionSymmetricEncryptionAlgorithms.values().filter { it.keyAlgorithm() == EncryptionSymmetricEncryptionAlgorithms.valueOf(secretKey.algorithm) }
+                } catch(e: Exception){
+                    logger.error("Unable to determine the default key algorithm or a list of valid encryption algorithms for the default key algorithm using the extension with UUID: ${encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid}")
+                    return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+                }
+                if (validAlgorithms.isEmpty()){
+                    logger.error("Unable to determine a list of valid encryption algorithms for the default key algorithm using the extension with UUID: ${encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid}")
+                    return ResponseEntity(Pair(fileObject.fileUuid,-1L), HttpStatus.INTERNAL_SERVER_ERROR)
+                }
+                //guess that the last valid algorithm is the most secure one as well as the last in the list of valid block sizes and default to that one
+                encryptionProfile = EncryptionProfile(encryptionServiceUuid = null,encryptionIsSymmetric = true,encryptionAlgorithm = validAlgorithms.last().value,encryptionKeyAlgorithm = validAlgorithms.last().keyAlgorithm().value,encryptionBlockSize = validAlgorithms.last().validBlockSizes().last(), secretKey = secretKey.encoded, publicKey = null)
+            }
+
+            //load factory if it hasn't already been loaded
+            val encryptionKey: Key
+            val encryptionAlgorithm: EncryptionAlgorithms
+            if (encryptionProfile.encryptionIsSymmetric) {
+                encryptionAlgorithm = EncryptionSymmetricEncryptionAlgorithms.valueOf(encryptionProfile.encryptionAlgorithm)
+                encryptionKey = SecretKeySpec(encryptionProfile.secretKey, encryptionProfile.encryptionKeyAlgorithm)
+            } else {
+                encryptionAlgorithm = EncryptionAsymmetricEncryptionAlgorithms.valueOf(encryptionProfile.encryptionAlgorithm)
+                val x509publicKey = X509EncodedKeySpec(encryptionProfile.publicKey)
+                encryptionKey = KeyFactory.getInstance(encryptionProfile.encryptionKeyAlgorithm).generatePublic(x509publicKey)
+            }
+
+            val encryptedFile = File.createTempFile(FilenameUtils.getName(tempFile.path), ".enc.tmp")
+            var ivParameterSpec: IvParameterSpec? = null
+            if (encryptionProfile.encryptionBlockSize < 1){
+                val ivByteArray = ByteArray(encryptionProfile.encryptionBlockSize/8)
+                secureRandom.nextBytes(ivByteArray)
+                ivParameterSpec =  IvParameterSpec(ivByteArray)
+            }
+
+            encryptionFactory.encryptionFileService.encrypt(tempFile.inputStream(), encryptedFile.outputStream(), encryptionKey, encryptionAlgorithm, ivParameterSpec, secureRandom)
+
+            val encryptedHash = hashFile(encryptedFile)
+
+
+            // Make the path from the fileUuid + version number
+            val fileVersion = (fileObject.cloudServiceFileList?.last()?.version ?:0) + 1
             val cloudServiceFilePath = "/${fileObject.fileUuid}/$fileVersion"
             val uploadSuccess = cloudServiceFactory.cloudServiceFileIOService.upload(tempFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
             if (uploadSuccess != null){
                 //if the file upload was successful, add the entry to the database
-                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUuid.toString(), cloudServiceFilePath,fileVersion, Date())
+                val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUuid.toString(), cloudServiceFilePath, fileVersion, Date(),encryptionProfile, ivParameterSpec?.iv, originalHash, encryptedHash)
                 cloudServiceFileRepository.save(cloudServiceFile)
             }
             tempFile.deleteOnExit()

@@ -18,11 +18,11 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
-import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccount
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.DuplicateUserException
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import mu.KLogging
@@ -81,7 +81,7 @@ class UserController {
             }
         }
         //create and save new user
-        val newUserAccount = UserAccount(user.username, user.password,user.email, user.enabled, user.roles)
+        val newUserAccount = UserAccount(user.username, user.password, user.email, user.enabled, user.roles)
         userAccountDetailsManager.userRepository.saveAndFlush(newUserAccount)
         if (!user.email.isNullOrBlank()) {
             val mail = javaMailSender.createMimeMessage()

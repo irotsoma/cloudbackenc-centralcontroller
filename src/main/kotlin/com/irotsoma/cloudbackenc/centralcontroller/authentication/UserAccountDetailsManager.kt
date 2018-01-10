@@ -18,6 +18,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
@@ -36,7 +37,7 @@ import org.springframework.stereotype.Component
  * @author Justin Zak
  */
 @Component
-open class UserAccountDetailsManager : UserDetailsService {
+class UserAccountDetailsManager : UserDetailsService {
     @Autowired
     lateinit var userRepository: UserAccountRepository
 

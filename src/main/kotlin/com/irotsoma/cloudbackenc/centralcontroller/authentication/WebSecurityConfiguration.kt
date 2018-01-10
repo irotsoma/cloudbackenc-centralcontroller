@@ -19,6 +19,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.StatelessAuthenticationFilter
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod

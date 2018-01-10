@@ -15,15 +15,17 @@
  */
 
 /*
- * Created by irotsoma on 12/6/16.
+ * Created by irotsoma on 12/22/16.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.files
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**
- * JPA repository for tracked files.
+ * JPA repository for cloud service file information.
+ *
+ * @author Justin Zak
  */
-interface FileRepository : JpaRepository<FileObject, Long> {
-    fun findByFileUuid(fileUuid: String): FileObject?
+interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Long> {
+    fun findById(id: Long) : CloudServiceFileObject?
 }

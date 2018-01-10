@@ -4,6 +4,7 @@ buildscript {
     ext.springBootVersion = '1.5.9.RELEASE'
     ext.kotlinVersion = '1.2.10'
     ext.apacheCommonsValidatorVersion = '1.6'
+    ext.apacheCommonsIoVersion = '1.3.2'
     ext.dokkaVersion = '0.9.14'
     ext.liquibaseGradleVersion = '1.2.4'
     ext.kotlinLoggingVersion = '1.4.6'
@@ -102,6 +103,7 @@ dependencies {
     //liquibase
     compile 'org.liquibase:liquibase-core'
     //apache commons
+    compile "org.apache.commons:commons-io:$apacheCommonsIoVersion"
     compile "commons-validator:commons-validator:$apacheCommonsValidatorVersion"
     //jjwt
     compile "io.jsonwebtoken:jjwt:$jjwtVersion"

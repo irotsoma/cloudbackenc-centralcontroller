@@ -14,18 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/*
- * Created by irotsoma on 12/22/16.
- */
-package com.irotsoma.cloudbackenc.centralcontroller.files
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 
-/**
- * JPA repository for cloud service file information.
- *
- * @author Justin Zak
- */
-interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Long> {
-    fun findById(id: Long) : CloudServiceFileObject?
+interface EncryptionProfileRepository: JpaRepository<EncryptionProfile,Long> {
+    fun findById(id:Long): EncryptionProfile?
 }

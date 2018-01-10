@@ -17,7 +17,7 @@
 /*
  * Created by irotsoma on 12/6/16.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.files
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import java.util.*
 import javax.persistence.*
@@ -31,13 +31,37 @@ import javax.persistence.*
  * @property locator The URI, ID, or other string that uniquely locates a file in a cloud service.
  * @property lastUpdated The date and time of the last update to the file (usually just the upload date/time).
  */
+
 @Entity
 @Table(name="cloud_service_file")
-class CloudServiceFileObject(@Column(name="file_uuid", nullable = false) var fileUuid: UUID,
-                             @Column(name="cloud_service_uuid", nullable = false) var cloudServiceUuid: String,
-                             @Column(name="locator", nullable = false) var locator: String,
-                             @Column(name="version", nullable = false) var version: Long,
-                             @Column(name="last_updated", nullable = false) var lastUpdated: Date){
+class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
+                             var fileUuid: UUID,
+
+                             @Column(name="cloud_service_uuid", nullable = false)
+                             var cloudServiceUuid: String,
+
+                             @Column(name="locator", nullable = false)
+                             var locator: String,
+
+                             @Column(name="version", nullable = false)
+                             var version: Long,
+
+                             @Column(name="last_updated", nullable = false)
+                             var lastUpdated: Date,
+
+                             @ManyToOne(cascade = [CascadeType.ALL])
+                             @JoinColumn(name = "encryption_profile_id", referencedColumnName = "id", nullable = false)
+                             var encryptionProfile: EncryptionProfile,
+
+                             @Column(name="initialization_vector", nullable = true)
+                             var initializationVector: ByteArray? = null,
+
+                             @Column(name="original_hash", nullable = false)
+                             var originalHash: String,
+
+                             @Column(name="encrypted_hash", nullable = false)
+                             var encryptedHash: String
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = -1

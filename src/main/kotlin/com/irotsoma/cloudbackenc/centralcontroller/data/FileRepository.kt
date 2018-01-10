@@ -13,20 +13,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
 /*
- * Created by irotsoma on 8/15/2016.
+ * Created by irotsoma on 12/6/16.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.authentication
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**
- * JPA repository object for storing user accounts
- *
- * @author Justin Zak
+ * JPA repository for tracked files.
  */
-interface UserAccountRepository : JpaRepository<UserAccount, Long> {
-    fun findByUsername(username: String): UserAccount?
-    fun findByEmail (email: String): UserAccount?
-    fun findById(id:Long): UserAccount?
+interface FileRepository : JpaRepository<FileObject, Long> {
+    fun findByFileUuid(fileUuid: String): FileObject?
 }

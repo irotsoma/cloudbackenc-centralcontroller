@@ -48,6 +48,11 @@ databaseChangeLog:
                   defaultValueBoolean: true
                   constraints:
                     nullable: false
+              - column:
+                  name: default_encryption_profile_id
+                  type: long
+                  constraints:
+                    nullable: true
         - createTable:
             tableName: user_roles
             columns:
@@ -189,6 +194,26 @@ databaseChangeLog:
                   type: date
                   constraints:
                     nullable: false
+              - column:
+                  name: encryption_profile_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: initialization_vector
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: original_hash
+                  type: varchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encrypted_hash
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
         - createTable:
             tableName: user_cloud_service
             columns:
@@ -238,3 +263,48 @@ databaseChangeLog:
               - column:
                   name: logged_in
                   value: true
+        - createTable:
+            tableName: encryption_profile
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: encryption_service_uuid
+                  type: uuid
+                  constraints:
+                    nullable: true
+              - column:
+                  name: encryption_is_symmetric
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_algorithm
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_key_algorithm
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_block_size
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: secret_key
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: public_key
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: true
