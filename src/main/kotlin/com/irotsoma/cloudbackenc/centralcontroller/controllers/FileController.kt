@@ -54,7 +54,7 @@ import javax.crypto.spec.SecretKeySpec
  * A REST controller for interacting with backup files.
  */
 @RestController
-@RequestMapping("/files")
+@RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/files")
 class FileController {
     /** kotlin-logging implementation*/
     companion object: KLogging()

@@ -21,6 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.StatelessAuthenticationFilter
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -40,6 +41,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
 
+    @Value("\${centralcontroller.api.v1.path}")
+    var restPath: String = ""
+
     @Autowired
     lateinit var userDetailsManager: UserAccountDetailsManager
     @Autowired
@@ -57,8 +61,13 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
         http
             .authorizeRequests()
                 .antMatchers("/h2-console/**").permitAll() //TODO: turn off access to H2 console
-                .antMatchers(HttpMethod.GET,"/cloud-services").permitAll() //allow access to list of installed cloud services
-                .anyRequest().authenticated() //but anything else requires authentication
+                //TODO: remove swagger paths if disabled
+                .antMatchers("/swagger-ui.html").permitAll() //allow access to the swagger UI documentation
+                .antMatchers("/webjars/springfox-swagger-ui/**").permitAll()
+                .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/v2/api-docs/**").permitAll()
+                .antMatchers(HttpMethod.GET,"$restPath/cloud-services").permitAll() //allow access to list of installed cloud services
+                //.anyRequest().authenticated() //but anything else requires authentication
                 .and()
             .httpBasic() //allow basic username/password authentication
                 .and()

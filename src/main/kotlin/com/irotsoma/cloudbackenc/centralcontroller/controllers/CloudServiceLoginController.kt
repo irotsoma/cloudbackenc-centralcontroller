@@ -48,6 +48,7 @@ import java.util.*
  *
  * @author Justin Zak
  */
+@RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
 class CloudServiceLoginController {
     /** kotlin-logging implementation*/
@@ -69,7 +70,7 @@ class CloudServiceLoginController {
      * @param user A CloudServiceUser object that contains the user information for the cloud service.
      * @return CloudServiceUser.STATE value indicating the login state.
      */
-    @RequestMapping("cloud-services/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
+    @RequestMapping("/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
@@ -104,7 +105,7 @@ class CloudServiceLoginController {
 
     }
 
-    @RequestMapping("cloud-services/logout/{uuid}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping("/logout/{uuid}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     fun logout(@PathVariable(value="uuid")uuid: UUID) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()

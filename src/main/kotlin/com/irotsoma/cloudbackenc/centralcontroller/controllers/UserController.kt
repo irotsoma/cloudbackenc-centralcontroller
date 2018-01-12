@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse
  * REST controller for managing users.
  */
 @RestController
-@RequestMapping("/users")
+@RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/users")
 class UserController {
     /** kotlin-logging implementation*/
     companion object: KLogging()

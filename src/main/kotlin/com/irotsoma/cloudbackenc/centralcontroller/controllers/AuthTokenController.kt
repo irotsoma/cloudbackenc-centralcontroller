@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController
  *
  * @author Justin Zak
  */
-@RequestMapping("auth")
+@RequestMapping("\${centralcontroller.api.v1.path}/auth")
 @RestController
 class AuthTokenController {
 
@@ -55,7 +55,7 @@ class AuthTokenController {
      *
      * @param username Username for which the token will be generated.
      */
-    @RequestMapping("/users/{username}/token", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping("/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun getTokenForOther(@PathVariable username: String): ResponseEntity<AuthenticationToken>{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(username) as User)
@@ -70,7 +70,7 @@ class AuthTokenController {
      * GET method which retrieves an auth token for the currently logged in user.  Also can be used to refresh tokens
      * that have not expired yet by logging in with a valid token.
      */
-    @RequestMapping("/token", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
+    @RequestMapping(method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
     @Secured ("ROLE_USER", "ROLE_ADMIN")
     fun getToken(): ResponseEntity<AuthenticationToken>{
         val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)

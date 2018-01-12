@@ -44,6 +44,7 @@ import java.util.*
  *
  * @author Justin Zak
  */
+@RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
 class CloudServicesListController {
     /** kotlin-logging implementation*/
@@ -61,7 +62,7 @@ class CloudServicesListController {
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
-    @RequestMapping("/cloud-services",method = [RequestMethod.GET],produces = ["application/json"])
+    @RequestMapping(method = [RequestMethod.GET],produces = ["application/json"])
     @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
         //copy the values of the extension configs in the repository to a CloudServiceExtensionConfigList and mask the factory class and package name since they aren't required and otherwise might cause security issues if shared
         return CloudServiceExtensionList(cloudServiceFactoryRepository.extensionConfigs.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}})
@@ -69,7 +70,7 @@ class CloudServicesListController {
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed which the user logged in (though the login may have expired).
      */
-    @RequestMapping("/cloud-services/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
+    @RequestMapping("/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
         //return an empty list if the user doesn't exist
         val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()
