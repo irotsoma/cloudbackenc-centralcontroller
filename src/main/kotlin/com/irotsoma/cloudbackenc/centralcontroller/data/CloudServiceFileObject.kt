@@ -30,6 +30,11 @@ import javax.persistence.*
  * @property cloudServiceUuid the UUID of the cloud service extension that controls the cloud service interface operations.
  * @property locator The URI, ID, or other string that uniquely locates a file in a cloud service.
  * @property lastUpdated The date and time of the last update to the file (usually just the upload date/time).
+ * @property version The version of the file
+ * @property encryptionProfile The encryption settings associated with this file
+ * @property initializationVector The initialization vector used when encrypting the file, or null if not used
+ * @property originalHash The original file hash before the file was encrypted.
+ * @property encryptedHash The file hash after the file was encrypted.
  */
 
 @Entity
@@ -66,3 +71,4 @@ class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = -1
 }
+

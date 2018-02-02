@@ -23,7 +23,15 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 /**
  * JPA repository for tracked files.
+ *
+ * @author Justin Zak
  */
 interface FileRepository : JpaRepository<FileObject, Long> {
+    /**
+     * retrieve a record by the record UUID
+     *
+     * @param fileUuid The UUID of the record to retrieve
+     * @returns An instance of [FileObject] representing the database record or null if the UUID was not found
+     */
     fun findByFileUuid(fileUuid: String): FileObject?
 }

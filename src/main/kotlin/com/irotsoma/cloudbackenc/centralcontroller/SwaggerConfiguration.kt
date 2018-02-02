@@ -25,6 +25,11 @@ import springfox.documentation.spi.DocumentationType
 import springfox.documentation.spring.web.plugins.Docket
 import springfox.documentation.swagger2.annotations.EnableSwagger2
 
+/**
+ * Configuration class for Swagger API documentation
+ *
+ * @property restPath properties configurable path for the current version of the Rest API
+ */
 @Configuration
 @EnableSwagger2
 class SwaggerConfiguration {
@@ -33,6 +38,7 @@ class SwaggerConfiguration {
     @Value("\${centralcontroller.api.v1.path}")
     var restPath: String = "/"
 
+    /** Sets the specific options for Swagger */
     @Bean
     fun api():Docket = Docket(DocumentationType.SWAGGER_2)
             .select()

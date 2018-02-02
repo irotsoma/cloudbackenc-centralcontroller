@@ -47,6 +47,10 @@ import java.util.*
  * controller for the extension.
  *
  * @author Justin Zak
+ * @property userAccountDetailsManager Autowired instance of user account manager
+ * @property cloudServiceFactoryRepository Repository that holds the installed cloud service extensions.
+ * @property userCloudServiceRepository JPA repository that represents the configured login information for cloud services.
+ * @property messageSource Autowired MessageSource for localization strings.
  */
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
@@ -64,7 +68,7 @@ class CloudServiceLoginController {
     lateinit var messageSource: MessageSource
 
     /**
-     * Calls the login function of the cloud service.
+     * Rest POST service which calls the login function of the cloud service.
      *
      * @param uuid The UUID of the cloud service extension.
      * @param user A CloudServiceUser object that contains the user information for the cloud service.
@@ -104,9 +108,15 @@ class CloudServiceLoginController {
         return ResponseEntity(response, status)
 
     }
-
-    @RequestMapping("/logout/{uuid}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
-    fun logout(@PathVariable(value="uuid")uuid: UUID) : ResponseEntity<CloudServiceUser.STATE> {
+    /**
+     * Rest POST service which calls the logout function of the cloud service.
+     *
+     * @param uuid The UUID of the cloud service extension.
+     * @param user A CloudServiceUser object that contains the user information for the cloud service.
+     * @return CloudServiceUser.STATE value indicating the login state.
+     */
+    @RequestMapping("/logout/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
+    fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
         val authenticationService = (cloudServiceFactory.newInstance() as CloudServiceFactory).authenticationService
@@ -116,7 +126,7 @@ class CloudServiceLoginController {
         try {
             val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), null, userAccountDetailsManager, userCloudServiceRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
-            authenticationService.logout(CloudServiceUser("", null, uuid.toString(), null), currentUser.cloudBackEncUser())
+            authenticationService.logout(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
             logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}"}
             throw CloudServiceException(e.message, e)

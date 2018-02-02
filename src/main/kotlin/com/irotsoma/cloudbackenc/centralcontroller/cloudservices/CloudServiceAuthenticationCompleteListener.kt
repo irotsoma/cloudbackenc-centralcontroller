@@ -28,7 +28,10 @@ import java.util.*
 /**
  * Implementation of listener that updates the database to the appropriate login status for a particular cloud service
  *
- * @param user The internal user associated with the cloud service.  Required in order to appropriately update the database.
+ * @property user The internal user associated with the cloud service.  Required in order to appropriately update the database.
+ * @property cloudServiceUsername The username used for logging in to the cloud service.
+ * @property userAccountDetailsManager Autowired instance of user account manager
+ * @property userCloudServiceRepository JPA repository that stores the login information for a cloud service
  * @author Justin Zak
  */
 class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, override var cloudServiceUsername: String?, val userAccountDetailsManager: UserAccountDetailsManager, val userCloudServiceRepository: UserCloudServiceRepository) : CloudServiceAuthenticationRefreshListener {
@@ -44,7 +47,7 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
             val userId = userAccountDetailsManager.userRepository.findByUsername(user!!.username)?.id ?: return
             var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
-                cloudServiceUserInfo = UserCloudService(cloudServiceUuid.toString(), userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+                cloudServiceUserInfo = UserCloudService(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             }
             cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
             userCloudServiceRepository.save(cloudServiceUserInfo)

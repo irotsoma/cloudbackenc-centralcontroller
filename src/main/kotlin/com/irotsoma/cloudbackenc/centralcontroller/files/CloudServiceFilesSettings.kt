@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration
  * Settings related to cloud service files.
  *
  * @author Justin Zak
+ * @property maxFileVersions The maximum number of versions of a tracked file to keep.
  */
 @Configuration
 @EnableConfigurationProperties

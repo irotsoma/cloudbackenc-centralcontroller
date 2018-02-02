@@ -33,7 +33,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 
 /**
@@ -69,6 +68,8 @@ class CloudServicesListController {
     }
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed which the user logged in (though the login may have expired).
+     *
+     * @returns An instance of CloudServiceExtensionList in a REST response
      */
     @RequestMapping("/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
@@ -78,14 +79,12 @@ class CloudServicesListController {
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
         //authorized user requesting the list must either be the user in the request or be an admin
-        if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true)))
-        {
+        if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true))) {
             return ResponseEntity(CloudServiceExtensionList(), HttpStatus.FORBIDDEN)
         }
-
         val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
-        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ it.key in userCloudServiceList.filter{it.loggedIn}.map{UUID.fromString(it.cloudServiceUuid)}}
+        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ it.key in userCloudServiceList.filter{it.loggedIn}.map{it.cloudServiceUuid}}
 
         return ResponseEntity(CloudServiceExtensionList(filteredCloudServices.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}}), HttpStatus.OK)
     }

@@ -36,6 +36,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *
  * @author Justin Zak
  * @property userDetailsManager Autowired instance of user account manager
+ * @property statelessAuthenticationFilter Autowired authentication filter that verifies the JWT token
+ * @property restPath properties configurable path for the current version of the Rest API
  */
 @Configuration
 @EnableWebSecurity
@@ -43,20 +45,15 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
 
     @Value("\${centralcontroller.api.v1.path}")
     var restPath: String = ""
-
     @Autowired
     lateinit var userDetailsManager: UserAccountDetailsManager
     @Autowired
     lateinit var statelessAuthenticationFilter: StatelessAuthenticationFilter
-    /**
-     * Adds the user account manager to REST controllers with a password encoder for hashing passwords
-     */
+    /** Adds the user account manager to REST controllers with a password encoder for hashing passwords */
     override fun configure(auth: AuthenticationManagerBuilder){
         auth.userDetailsService(this.userDetailsManager).passwordEncoder(UserAccount.PASSWORD_ENCODER)
     }
-    /**
-     * Security configuration settings for REST controllers
-     */
+    /** Security configuration settings for REST controllers */
     override fun configure(http: HttpSecurity){
         http
             .authorizeRequests()

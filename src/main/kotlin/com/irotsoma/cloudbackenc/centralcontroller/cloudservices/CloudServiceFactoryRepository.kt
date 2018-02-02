@@ -35,9 +35,9 @@ import javax.annotation.PostConstruct
 /**
  * Imports and stores information about installed Cloud Service Extensions
  *
- * @property applicationContext Stores the current application context.  Set automatically when autowired.
- *
  * @author Justin Zak
+ * @property applicationContext Stores the current application context.  Set automatically by Spring.
+ * @property cloudServicesSettings Loads configuration options from external properties
  */
 
 @Component
@@ -49,12 +49,11 @@ class CloudServiceFactoryRepository : ExtensionRepository(), ApplicationContextA
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
 
     lateinit var applicationContext : ConfigurableApplicationContext
-    /**
-     * Used by Spring Autowiring to set the current application context.
-     */
+    /** Used by Spring to set the current application context. */
     override fun setApplicationContext(applicationContext: ApplicationContext) {
         this.applicationContext = applicationContext as ConfigurableApplicationContext
     }
+    /** Initialize the extensionSettings and parentClassLoader and call loadDynamicServices from the super class */
     @PostConstruct
     fun configure(){
         extensionSettings = cloudServicesSettings

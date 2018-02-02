@@ -38,6 +38,7 @@ import javax.persistence.*
  * @property enabled Indicates if a user is enabled in the system.
  * @property roleList A list of roles for the user.
  * @property roles roleList translated into CloudBackEncRoles
+ * @property defaultEncryptionProfile The encryption settings preferred by this user.
  */
 @Entity
 @Table(name = "user_account")
@@ -47,7 +48,9 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
                   @Column(name = "email", nullable = true) var email: String?,
                   @Column(name = "enabled", nullable = false) var enabled: Boolean,
                   roles: List<CloudBackEncRoles>) {
+    /** kotlin-logging implementation */
     companion object : KLogging() {
+        /** the type of password encoder used to hash passwords before storing them */
         val PASSWORD_ENCODER: PasswordEncoder = BCryptPasswordEncoder()
     }
     @Id

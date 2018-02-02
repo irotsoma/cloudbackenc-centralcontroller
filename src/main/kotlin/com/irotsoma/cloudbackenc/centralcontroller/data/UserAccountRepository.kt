@@ -26,7 +26,25 @@ import org.springframework.data.jpa.repository.JpaRepository
  * @author Justin Zak
  */
 interface UserAccountRepository : JpaRepository<UserAccount, Long> {
+    /**
+     * retrieve a record by the username of the user
+     *
+     * @param username The username of the user to retrieve
+     * @returns An instance of [UserAccount] representing the database record or null if the username was not found
+     */
     fun findByUsername(username: String): UserAccount?
+    /**
+     * retrieve a record by the user's email address
+     *
+     * @param email The email address of the user to retrieve
+     * @returns An instance of [UserAccount] representing the database record or null if the email address was not found
+     */
     fun findByEmail (email: String): UserAccount?
+    /**
+     * retrieve a record by the db ID
+     *
+     * @param id The database ID of the record to retrieve
+     * @returns An instance of [UserAccount] representing the database record or null if the ID was not found
+     */
     fun findById(id:Long): UserAccount?
 }

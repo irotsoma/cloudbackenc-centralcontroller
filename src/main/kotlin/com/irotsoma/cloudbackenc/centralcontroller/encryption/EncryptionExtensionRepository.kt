@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+/* Created by irotsoma on 8/18/2016. */
 
 package com.irotsoma.cloudbackenc.centralcontroller.encryption
-
 import com.irotsoma.cloudbackenc.common.ExtensionRepository
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionExtension
@@ -28,24 +28,28 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 /**
- * Created by irotsoma on 8/18/2016.
  *
- * Implements [ExtensionRepository] for encryption extensions
+ *
+ * Implements ExtensionRepository for encryption extensions
+ *
+ * @author Justin Zak
+ * @property applicationContext Stores the current application context.  Set automatically by Spring.
+ * @property encryptionExtensionSettings Loads configuration options from external properties
  */
-
 @Component
 class EncryptionExtensionRepository : ExtensionRepository(), ApplicationContextAware {
 
-    //inject settings
     @Autowired
     lateinit var encryptionExtensionSettings: EncryptionExtensionSettings
 
-    //application context should be set by Spring
     lateinit var applicationContext : ConfigurableApplicationContext
+
+    /** Used by Spring to set the current application context. */
     override fun setApplicationContext(applicationContext: ApplicationContext?) {
         this.applicationContext = applicationContext as ConfigurableApplicationContext? ?: throw EncryptionException("Application context in EncryptionExtensionRepository is null.")
     }
 
+    /** Initialize the extensionSettings and parentClassLoader and call loadDynamicServices from the super class */
     @PostConstruct
     fun configure(){
         extensionSettings = encryptionExtensionSettings

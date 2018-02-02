@@ -46,13 +46,17 @@ import javax.servlet.http.HttpServletResponse
 
 /**
  * REST controller for managing users.
+ *
+ * @author Justin Zak
+ * @property javaMailSender autowired Spring email sender service
+ * @property userAccountDetailsManager autowired user account service
+ * @property messageSource autowired message source for localization
  */
 @RestController
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/users")
 class UserController {
-    /** kotlin-logging implementation*/
+    /** kotlin-logging implementation */
     companion object: KLogging()
-
     @Autowired
     private lateinit var javaMailSender: JavaMailSender
     @Autowired
@@ -60,9 +64,7 @@ class UserController {
     @Autowired
     lateinit var messageSource: MessageSource
 
-    /**
-     * Post method for creating new users (Admin only)
-     */
+    /** Post method for creating new users (Admin only) */
     @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<Any>{

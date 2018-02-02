@@ -19,13 +19,25 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 import java.util.*
 import javax.persistence.*
 
+/**
+ * JPA entity representing the configuration settings for an encryption service.
+ *
+ * @property id Database generated ID for the record.
+ * @property encryptionServiceUuid UUID of the encryption service extension
+ * @property encryptionIsSymmetric Defines if the encryption algoritm used is symmetric or asymmetric
+ * @property encryptionAlgorithm The encryption algorithm used
+ * @property encryptionKeyAlgorithm The encryption key algorithm used
+ * @property encryptionBlockSize The block size used for block cypher algorithms
+ * @property secretKey The encryption key for symmetric algorithms or the private key for asymmetric algorithms
+ * @property publicKey The public key for asymmetric algorithms, null for symmetric algorithms
+ */
 @Entity
 @Table(name = "encryption_profile")
 class EncryptionProfile(@Column(name = "encryption_service_uuid", nullable = true, updatable = false) val encryptionServiceUuid:UUID?,
                         @Column(name = "encryption_is_symmetric", nullable = false, updatable = false) val encryptionIsSymmetric:Boolean,
                         @Column(name = "encryption_algorithm", nullable = false, updatable = false) val encryptionAlgorithm:String,
                         @Column(name = "encryption_key_algorithm", nullable = false, updatable = false) val encryptionKeyAlgorithm:String,
-                        @Column(name = "encryption_block_size", nullable = false, updatable = false) val encryptionBlockSize:Int,
+                        @Column(name = "encryption_block_size", nullable = true, updatable = false) val encryptionBlockSize:Int?,
                         @Column(name = "secret_key", nullable = false, updatable = false) val secretKey: ByteArray,
                         @Column(name = "public_key", nullable = true, updatable = false) val publicKey: ByteArray?
 ) {
@@ -34,3 +46,4 @@ class EncryptionProfile(@Column(name = "encryption_service_uuid", nullable = tru
     var id: Long = -1
 }
 
+//TODO: create a process to delete any encryption profiles no longer linked to by foreign keys.

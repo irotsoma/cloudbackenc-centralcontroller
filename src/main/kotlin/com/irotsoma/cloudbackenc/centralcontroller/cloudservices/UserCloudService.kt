@@ -19,6 +19,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -26,16 +27,17 @@ import javax.persistence.*
  *
  * @property id Database generated ID for the record.
  * @property cloudServiceUuid UUID of the cloud service to link to the user.
- * @property userId ID for the user.
+ * @property userId Internal user ID to which this configuration belongs.
+ * @property cloudServiceUsername The username used to log into the cloud service.
  * @property loggedIn Last known login status of the user for this cloud service.
  * @author Justin Zak
  */
 @Entity
 @Table(name="user_cloud_service")
-data class UserCloudService(@Column(name="cloud_service_uuid",nullable=false, updatable = false) val cloudServiceUuid: String,
-                       @Column(name="user_id",nullable=false, updatable = false) val userId: Long,
-                       @Column(name="cloud_service_username", nullable = true, updatable = false) val cloudServiceUsername: String?,
-                       @Column(name="logged_in",nullable=false) var loggedIn: Boolean = false){
+data class UserCloudService(@Column(name="cloud_service_uuid",nullable=false, updatable = false) val cloudServiceUuid: UUID,
+                            @Column(name="user_id",nullable=false, updatable = false) val userId: Long,
+                            @Column(name="cloud_service_username", nullable = true, updatable = false) val cloudServiceUsername: String?,
+                            @Column(name="logged_in",nullable=false) var loggedIn: Boolean = false){
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private var id: Long = -1

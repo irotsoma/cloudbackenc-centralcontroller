@@ -18,6 +18,17 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 
+/**
+ * JPA repository for encryption configuration profiles that will be linked with files sent to a cloud service
+ *
+ * @author Justin Zak
+ */
 interface EncryptionProfileRepository: JpaRepository<EncryptionProfile,Long> {
+    /**
+     * retrieve a record by the db ID
+     *
+     * @param id The database ID of the record to retrieve
+     * @returns An instance of [EncryptionProfile] representing the database record or null if the ID was not found
+     */
     fun findById(id:Long): EncryptionProfile?
 }
