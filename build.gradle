@@ -22,11 +22,11 @@ buildscript {
     ext.apacheCommonsIoVersion = '1.3.2'
     ext.dokkaVersion = '0.9.14'
     ext.liquibaseGradleVersion = '1.2.4'
-    ext.kotlinLoggingVersion = '1.4.6'
+    ext.kotlinLoggingVersion = '1.5.3'
     ext.jjwtVersion = '0.9.0'
     ext.propdepsPluginVersion='0.0.10.RELEASE'
-    ext.jacksonVersion='2.9.3'
-    ext.swaggerVersion='2.7.0'
+    ext.jacksonVersion='2.9.4'
+    ext.swaggerVersion='2.8.0'
 
     repositories {
         jcenter()
