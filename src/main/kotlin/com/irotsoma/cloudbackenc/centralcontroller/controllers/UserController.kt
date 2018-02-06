@@ -28,7 +28,9 @@ import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import mu.KLogging
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.MessageSource
+import org.springframework.context.NoSuchMessageException
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -53,7 +55,7 @@ import javax.servlet.http.HttpServletResponse
  * @property messageSource autowired message source for localization
  */
 @RestController
-@RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/users")
+@RequestMapping("\${centralcontroller.api.v1.path}/users")
 class UserController {
     /** kotlin-logging implementation */
     companion object: KLogging()
@@ -63,12 +65,14 @@ class UserController {
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
     lateinit var messageSource: MessageSource
+    @Value("\${centralcontroller.api.v1.path}")
+    lateinit var apiPath: String
 
     /** Post method for creating new users (Admin only) */
-    @RequestMapping(method = arrayOf(RequestMethod.POST), produces = arrayOf("application/json"))
+    @RequestMapping(method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<Any>{
-        val authorizedUser = SecurityContextHolder.getContext().authentication
+        //val authorizedUser = SecurityContextHolder.getContext().authentication
         val locale = LocaleContextHolder.getLocale()
         //check to see if there is a duplicate user
         if (userAccountDetailsManager.userRepository.findByUsername(user.username) != null){
@@ -95,11 +99,13 @@ class UserController {
                 javaMailSender.send(mail)
             } catch (e: MessagingException) {
                 e.printStackTrace() //TODO: create a custom exception here
+            } catch (e: NoSuchMessageException){
+                e.printStackTrace() //TODO: create a custom exception here
             }
 
         }
         //return the path to the user id
-        val responseLocation = uriComponentsBuilder.path("/users/{userId}").buildAndExpand(user.username)
+        val responseLocation = uriComponentsBuilder.path("$apiPath/users/{userId}").buildAndExpand(user.username)
         val headers = HttpHeaders()
         headers.location = responseLocation.toUri()
         return ResponseEntity(headers, HttpStatus.CREATED)
@@ -108,14 +114,14 @@ class UserController {
     /**
      * PUT method for updating user information (Admin or affected user only)
      */
-    @RequestMapping(method = arrayOf(RequestMethod.PUT), produces = arrayOf("application/json"))
+    @RequestMapping(method = [RequestMethod.PUT], produces = ["application/json"])
     fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
+        val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         //authorized user requesting the update must either be the user in the request or be an admin
-        if ((updatedUser.username != authorizedUser.name) || (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
+        if ((updatedUser.username != authorizedUser.name) || (!currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
         {
-            return ResponseEntity(null, HttpStatus.FORBIDDEN)
+            return ResponseEntity(HttpStatus.FORBIDDEN)
         }
         //
         try{
@@ -142,10 +148,10 @@ class UserController {
     /**
      * DELETE method for deleting a user from the system (Admin only)
      */
-    @RequestMapping("/{username}", method = arrayOf(RequestMethod.DELETE), produces = arrayOf("application/json"))
+    @RequestMapping("/{username}", method = [RequestMethod.DELETE], produces = arrayOf("application/json"))
     @Secured("ROLE_ADMIN")
     fun deleteUser(@PathVariable username: String) : ResponseEntity<Any>{
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username)
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()
         userAccountDetailsManager.userRepository.delete(requestedUser)
         return ResponseEntity(HttpStatus.OK)
     }
@@ -153,12 +159,14 @@ class UserController {
     /**
      * GETs the user's information (Admin or affected user only)
      */
-    @RequestMapping("/{username}", method = arrayOf(RequestMethod.GET), produces = arrayOf("application/json"))
-    fun getUser(@PathVariable username: String) : ResponseEntity<CloudBackEncUser>{
+    @RequestMapping(value=["/{username}", "/", ""], method = [RequestMethod.GET], produces = ["application/json"])
+    fun getUser(@PathVariable(required=false) username: String?) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username)
-        if (!currentUser.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
+        val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username!!})
+        //if the user is an admin then check if the requested user is found otherwise if not admin respond with
+        //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
+        if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
             if (requestedUser == null){
                 return ResponseEntity(HttpStatus.NOT_FOUND)
             }
