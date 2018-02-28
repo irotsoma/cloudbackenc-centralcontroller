@@ -37,7 +37,7 @@ import java.util.*
  * @property cloudServiceFactoryRepository Autowired repository for cloud service extensions
  * @property userCloudServiceRepository Autowired jpa repository of settings for logging in to cloud services
  * @property userAccountDetailsManager Autowired instance of user account manager
- * @property spaceAvailable A map indexed by user ID containing a map of available space indexed by cloud service extension UUIDs
+ * @property currentSpaceAvailable A map indexed by user ID containing a map of available space indexed by cloud service extension UUIDs
 */
 @Component
 class FileDistributor {
@@ -56,7 +56,7 @@ class FileDistributor {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
-    val spaceAvailable = HashMap<Long,HashMap<UUID, Long>>()
+    val currentSpaceAvailable = HashMap<Long,HashMap<UUID, Long>>()
 
     /**
      * function to automatically determine the best location to store a file of a given size
@@ -67,16 +67,16 @@ class FileDistributor {
     fun determineBestLocation(user: UserAccount, fileSize: Long, excludeList:List<UUID> = emptyList()): UUID?{
         // currently just finds the service with the most space that's not in the excludeList and returns it as long as it is more than the fileSize
         // TODO: Implement more logic such as service max file size, distributing versions of the same file to different services, etc
-        val sortedSpaceAvailable = spaceAvailable[user.id]?.filter {it.key !in excludeList}?.toList()?.sortedBy { (_, value) -> value}?.toMap()
+        val sortedSpaceAvailable = currentSpaceAvailable[user.id]?.filter {it.key !in excludeList}?.toList()?.sortedBy { (_, value) -> value}?.toMap()
 
         return if (sortedSpaceAvailable?.values?.last() ?:0 > fileSize) sortedSpaceAvailable?.keys?.last() else null
     }
     /** Scheduled task that locally caches information about the cloud service such as space available */
     @Scheduled(fixedDelay = delay)
     private fun checkAvailableSpacePeriodically(){
-        spaceAvailable.clear()
+        currentSpaceAvailable.clear()
         for (userId in userCloudServiceRepository.findDistinctUserId() ?: emptyList()) {
-            spaceAvailable[userId] = HashMap()
+            currentSpaceAvailable[userId] = HashMap()
             for ((key, value) in cloudServiceFactoryRepository.extensions) {
                 try {
                     val factory = value.newInstance() as CloudServiceFactory
@@ -84,7 +84,10 @@ class FileDistributor {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
                         if (user != null) {
                             val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
-                            spaceAvailable[userId]!![key] = space
+                            //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
+                            if (space != null) {
+                                currentSpaceAvailable[userId]!![key] = space
+                            }
                         }
                     }
                 } catch(ignore:Exception){}
@@ -106,14 +109,17 @@ class FileDistributor {
                 val userAccount = userAccountDetailsManager.userRepository.findById(user.id)
                 if (userAccount != null) {
                     val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
-                    spaceAvailable[user.id]!!.plus(Pair(cloudServiceUuid, cloudServiceUuid))
-                    if (!spaceAvailable.containsKey(user.id)){
-                        spaceAvailable[user.id]= HashMap()
-                    }
-                    if (spaceAvailable[user.id]!!.contains(cloudServiceUuid)){
-                        spaceAvailable[user.id]!!.replace(cloudServiceUuid,space)
-                    } else {
-                        spaceAvailable[user.id]!!.put(cloudServiceUuid, space)
+                    //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
+                    if (space != null) {
+                        currentSpaceAvailable[user.id]!!.plus(Pair(cloudServiceUuid, cloudServiceUuid))
+                        if (!currentSpaceAvailable.containsKey(user.id)) {
+                            currentSpaceAvailable[user.id] = HashMap()
+                        }
+                        if (currentSpaceAvailable[user.id]!!.contains(cloudServiceUuid)) {
+                            currentSpaceAvailable[user.id]!!.replace(cloudServiceUuid, space)
+                        } else {
+                            currentSpaceAvailable[user.id]!!.put(cloudServiceUuid, space)
+                        }
                     }
 
                 }

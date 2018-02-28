@@ -19,6 +19,8 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFile
+import java.io.File
 import java.util.*
 import javax.persistence.*
 
@@ -29,6 +31,7 @@ import javax.persistence.*
  * @property fileUuid The UUID of a file as generated when the file was uploaded to the file controller.
  * @property cloudServiceUuid the UUID of the cloud service extension that controls the cloud service interface operations.
  * @property locator The URI, ID, or other string that uniquely locates a file in a cloud service.
+ * @property path The directory path and file name of the file as it is stored in the cloud service. (optional)
  * @property lastUpdated The date and time of the last update to the file (usually just the upload date/time).
  * @property version The version of the file
  * @property encryptionProfile The encryption settings associated with this file
@@ -47,6 +50,9 @@ class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
 
                              @Column(name="locator", nullable = false)
                              var locator: String,
+
+                             @Column(name="path", nullable = true)
+                             var path: String?,
 
                              @Column(name="version", nullable = false)
                              var version: Long,
@@ -70,5 +76,18 @@ class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = -1
+
+    /**
+     * Returns an instance of CloudServiceFile with the information from the current JPA object
+     */
+    fun toCloudServiceFile():CloudServiceFile{
+        val file = File(path)
+        var filename = path ?: ""
+        val directory = File(path).parent
+        if (path?.matches(Regex("([/\\\\])")) == true){
+            filename = File(path).name
+        }
+        return CloudServiceFile(filename, false, null, null, directory,locator, null, encryptedHash)
+    }
 }
 

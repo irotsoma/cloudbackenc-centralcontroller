@@ -126,7 +126,7 @@ class FileController {
                                 //delete the file using the plugin service
                                 try {
                                     val factory = cloudServiceFactoryClass.newInstance() as CloudServiceFactory
-                                    val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.locator, currentUser.cloudBackEncUser())
+                                    val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.toCloudServiceFile(), currentUser.cloudBackEncUser())
                                     if (deleteSuccess) {
                                         //delete the entry from the database
                                         cloudServiceFileRepository.delete(deleteItem)
@@ -242,10 +242,10 @@ class FileController {
         // Make the path from the fileUuid + version number
         val fileVersion = (fileObject.cloudServiceFileList?.last()?.version ?:0) + 1
         val cloudServiceFilePath = "/${fileObject.fileUuid}/$fileVersion"
-        val uploadSuccess = cloudServiceFactory.cloudServiceFileIOService.upload(localFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
-        if (uploadSuccess != null){
+        val uploadResponse = cloudServiceFactory.cloudServiceFileIOService.upload(localFile, Paths.get(cloudServiceFilePath), currentUser.cloudBackEncUser())
+        if (uploadResponse != null){
             //if the file upload was successful, add the entry to the database
-            val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUuid.toString(), cloudServiceFilePath, fileVersion, Date(),encryptionProfile, ivParameterSpec?.iv, originalHash, encryptedHash)
+            val cloudServiceFile = CloudServiceFileObject(fileObject.fileUuid, cloudServiceFactory.extensionUuid.toString(), uploadResponse.fileId ?: cloudServiceFilePath, cloudServiceFilePath, fileVersion, Date(),encryptionProfile, ivParameterSpec?.iv, originalHash, encryptedHash)
             cloudServiceFileRepository.save(cloudServiceFile)
         }
         localFile.deleteOnExit()

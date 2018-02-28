@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletResponse
  * @property javaMailSender autowired Spring email sender service
  * @property userAccountDetailsManager autowired user account service
  * @property messageSource autowired message source for localization
+ * @property apiPath autowired path for the current api version
  */
 @RestController
 @RequestMapping("\${centralcontroller.api.v1.path}/users")

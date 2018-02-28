@@ -185,6 +185,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: path
+                  type: varchar(5000)
+                  constraints:
+                    nullable: true
+              - column:
                   name: version
                   type: long
                   constraints:
