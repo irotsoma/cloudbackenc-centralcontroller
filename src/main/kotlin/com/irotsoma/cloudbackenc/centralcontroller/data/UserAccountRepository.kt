@@ -46,5 +46,5 @@ interface UserAccountRepository : JpaRepository<UserAccount, Long> {
      * @param id The database ID of the record to retrieve
      * @returns An instance of [UserAccount] representing the database record or null if the ID was not found
      */
-    fun findById(id:Long): UserAccount?
+    //fun findById(id:Long): UserAccount?
 }

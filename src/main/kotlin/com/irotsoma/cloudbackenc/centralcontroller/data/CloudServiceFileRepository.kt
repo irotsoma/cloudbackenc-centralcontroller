@@ -33,5 +33,5 @@ interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Lon
      * @param id The database ID of the record to retrieve
      * @returns An instance of [CloudServiceFileObject] representing the database record or null if the ID was not found
      */
-    fun findById(id: Long) : CloudServiceFileObject?
+    //fun findById(id: Long) : CloudServiceFileObject?
 }

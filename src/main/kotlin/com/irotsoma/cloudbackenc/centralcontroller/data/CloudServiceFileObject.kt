@@ -81,7 +81,6 @@ class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
      * Returns an instance of CloudServiceFile with the information from the current JPA object
      */
     fun toCloudServiceFile():CloudServiceFile{
-        val file = File(path)
         var filename = path ?: ""
         val directory = File(path).parent
         if (path?.matches(Regex("([/\\\\])")) == true){

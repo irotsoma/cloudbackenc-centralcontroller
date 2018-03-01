@@ -103,40 +103,40 @@ class FileController {
         }
 
         if (fileObject!=null){
-            val modifiableList = ArrayList(fileObject.cloudServiceFileList)
-            if ((modifiableList.size > cloudServiceFilesSettings.maxFileVersions) && (modifiableList.size != 0)) {
+            val fileList = ArrayList(fileObject.cloudServiceFileList)
+            if ((fileList.size > cloudServiceFilesSettings.maxFileVersions) && (fileList.size != 0)) {
                 //if there are already too many file versions, then delete the oldest one(s) (first one(s) due to order by statement)
                 var indexToDelete = 0
-                while ((modifiableList.size > cloudServiceFilesSettings.maxFileVersions) && (indexToDelete < modifiableList.size)){
+                while ((fileList.size > cloudServiceFilesSettings.maxFileVersions) && (indexToDelete < fileList.size)){
                     //find the cloud service file object id
-                    val deleteItem = modifiableList[indexToDelete].id
+                    val deleteItem = fileList[indexToDelete].id
                     if (deleteItem > 0) {
                         //find the object to be deleted
                         val fileToDelete = cloudServiceFileRepository.findById(deleteItem)
-                        if (fileToDelete == null) {
+                        if (!fileToDelete.isPresent) {
                             //handle error in finding file in database gracefully by skipping deleting the file.
                             logger.error("Unable to find file with ID: $deleteItem")
                             indexToDelete++
                         } else {
-                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.cloudServiceUuid)]
+                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.get().cloudServiceUuid)]
                             if (cloudServiceFactoryClass == null) {
-                                logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.cloudServiceUuid}")
+                                logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.get().cloudServiceUuid}")
                                 indexToDelete++
                             } else {
                                 //delete the file using the plugin service
                                 try {
                                     val factory = cloudServiceFactoryClass.newInstance() as CloudServiceFactory
-                                    val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.toCloudServiceFile(), currentUser.cloudBackEncUser())
+                                    val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.get().toCloudServiceFile(), currentUser.cloudBackEncUser())
                                     if (deleteSuccess) {
                                         //delete the entry from the database
-                                        cloudServiceFileRepository.delete(deleteItem)
-                                        modifiableList.removeAt(indexToDelete)
+                                        cloudServiceFileRepository.delete(fileToDelete.get())
+                                        fileList.removeAt(indexToDelete)
                                     } else {
-                                        logger.error("Unable to delete file from cloud service.  Cloud Service: ${factory.extensionName};  File Locator: ${fileToDelete.locator}")
+                                        logger.error("Unable to delete file from cloud service.  Cloud Service: ${factory.extensionName};  File Locator: ${fileToDelete.get().locator}")
                                         indexToDelete++
                                     }
                                 } catch (e: Exception){
-                                    logger.error("Unable to delete file from cloud service.  Factory: ${cloudServiceFactoryClass.canonicalName};  File locator: ${fileToDelete.locator}")
+                                    logger.error("Unable to delete file from cloud service.  Factory: ${cloudServiceFactoryClass.canonicalName};  File locator: ${fileToDelete.get().locator}")
                                     indexToDelete++
                                 }
                             }

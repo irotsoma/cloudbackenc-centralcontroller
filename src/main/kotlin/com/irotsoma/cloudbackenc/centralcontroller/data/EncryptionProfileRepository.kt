@@ -30,5 +30,5 @@ interface EncryptionProfileRepository: JpaRepository<EncryptionProfile,Long> {
      * @param id The database ID of the record to retrieve
      * @returns An instance of [EncryptionProfile] representing the database record or null if the ID was not found
      */
-    fun findById(id:Long): EncryptionProfile?
+    //fun findById(id:Long): EncryptionProfile?
 }

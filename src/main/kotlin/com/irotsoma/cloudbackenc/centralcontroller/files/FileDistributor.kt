@@ -82,8 +82,8 @@ class FileDistributor {
                     val factory = value.newInstance() as CloudServiceFactory
                     if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid) != null) {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
-                        if (user != null) {
-                            val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
+                        if (user.isPresent) {
+                            val space = factory.cloudServiceFileIOService.availableSpace(user.get().cloudBackEncUser())
                             //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
                             if (space != null) {
                                 currentSpaceAvailable[userId]!![key] = space
@@ -107,7 +107,7 @@ class FileDistributor {
             val factory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.newInstance() as CloudServiceFactory?
             if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(user.id, cloudServiceUuid) != null && factory != null) {
                 val userAccount = userAccountDetailsManager.userRepository.findById(user.id)
-                if (userAccount != null) {
+                if (userAccount.isPresent) {
                     val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
                     //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
                     if (space != null) {

@@ -25,9 +25,9 @@ import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import org.springframework.test.context.junit4.SpringRunner
 
@@ -64,12 +64,12 @@ class CloudServicesControllerIntegrationTests {
         assert(testValue.statusCode==HttpStatus.OK)
         val expected =CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
         //below is only valid when google drive plugin is installed in test extensions folder
-        assert(testValue.body.contains(expected))
+        assert(testValue.body!!.contains(expected))
 
         val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/test", CloudServiceExtensionList()::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
         //below is only valid when google drive plugin is installed in test extensions folder
-        assert(testValue2.body.contains(expected))
+        assert(testValue2.body!!.contains(expected))
     }
 
     @Test
@@ -97,7 +97,7 @@ class CloudServicesControllerIntegrationTests {
             restTemplate = TestRestTemplate()
         }
         val requestHeaders = HttpHeaders()
-        requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${testValue.body.token}")
+        requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${testValue.body!!.token}")
         val httpEntity = HttpEntity<Any>(requestHeaders)
         val testValue2 = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/auth",HttpMethod.GET, httpEntity, AuthenticationToken::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)

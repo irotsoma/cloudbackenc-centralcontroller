@@ -35,6 +35,5 @@ class CentralController
  * Startup function
  */
 fun main(args: Array<String>) {
-    val centralController = SpringApplication(CentralController::class.java, *args)
-    centralController.run()
+    SpringApplication.run(CentralController::class.java, *args)
 }

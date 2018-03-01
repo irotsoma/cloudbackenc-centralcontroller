@@ -94,7 +94,7 @@ class UserController {
             val mail = javaMailSender.createMimeMessage()
             try {
                 val helper = MimeMessageHelper(mail, true)
-                helper.setTo(user.email)
+                helper.setTo(user.email!!)
                 helper.setSubject(messageSource.getMessage("centralcontroller.user.controller.registration.email.subject", null, locale))
                 helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.username), locale))
                 javaMailSender.send(mail)
