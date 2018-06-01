@@ -66,9 +66,9 @@ apply plugin: 'propdeps'
 apply plugin: 'org.liquibase.gradle'
 def isReleaseVersion = !version.endsWith("SNAPSHOT")
 
-if (isReleaseVersion){
-    excludeDevtools = true
-}
+//if (isReleaseVersion){
+//    excludeDevtools = true
+//}
 signing {
     required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
     sign configurations.archives
