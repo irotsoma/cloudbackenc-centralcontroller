@@ -28,10 +28,11 @@ import org.springframework.data.jpa.repository.JpaRepository
  */
 interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Long> {
     /**
-     * retrieve a record by the db ID
+     * retrieve a record by a specific encryption profile.
+     * This is used by the periodic cleanup routine.
      *
-     * @param id The database ID of the record to retrieve
-     * @returns An instance of [CloudServiceFileObject] representing the database record or null if the ID was not found
+     * @param profile The EncryptionProfileObject to search files for.
+     * @returns An instance of [CloudServiceFileObject] representing the database record or empty list if the [EncryptionProfileObject] was not found
      */
-    //fun findById(id: Long) : CloudServiceFileObject?
+    fun findByEncryptionProfile(profile: EncryptionProfileObject): List<CloudServiceFileObject>
 }

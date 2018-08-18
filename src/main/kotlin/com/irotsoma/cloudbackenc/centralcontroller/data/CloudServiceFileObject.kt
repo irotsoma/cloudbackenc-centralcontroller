@@ -62,7 +62,7 @@ class CloudServiceFileObject(@Column(name="file_uuid", nullable = false)
 
                              @ManyToOne(cascade = [CascadeType.ALL])
                              @JoinColumn(name = "encryption_profile_id", referencedColumnName = "id", nullable = false)
-                             var encryptionProfile: EncryptionProfile,
+                             var encryptionProfile: EncryptionProfileObject,
 
                              @Column(name="initialization_vector", nullable = true)
                              var initializationVector: ByteArray? = null,

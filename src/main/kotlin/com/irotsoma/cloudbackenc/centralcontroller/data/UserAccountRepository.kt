@@ -41,10 +41,11 @@ interface UserAccountRepository : JpaRepository<UserAccount, Long> {
      */
     fun findByEmail (email: String): UserAccount?
     /**
-     * retrieve a record by the db ID
+     * retrieve a record by a specific default encryption profile.
+     * This is used by the periodic cleanup routine.
      *
-     * @param id The database ID of the record to retrieve
-     * @returns An instance of [UserAccount] representing the database record or null if the ID was not found
+     * @param profile The EncryptionProfileObject to search users for.
+     * @returns An instance of [UserAccount] representing the database record or empty list if the [EncryptionProfileObject] was not found
      */
-    //fun findById(id:Long): UserAccount?
+    fun findByDefaultEncryptionProfile(profile: EncryptionProfileObject): List<UserAccount>
 }

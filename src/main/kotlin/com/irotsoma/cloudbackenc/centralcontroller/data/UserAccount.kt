@@ -84,7 +84,7 @@ class UserAccount(@Column(name = "username", nullable = false, updatable = false
 
     @OneToOne(cascade = [CascadeType.ALL])
     @JoinColumn(name = "default_encryption_profile_id", referencedColumnName = "id")
-    var defaultEncryptionProfile: EncryptionProfile? = null
+    var defaultEncryptionProfile: EncryptionProfileObject? = null
 
     /**
      * Convenience method that returns a CloudBackEncUser object with the password masked

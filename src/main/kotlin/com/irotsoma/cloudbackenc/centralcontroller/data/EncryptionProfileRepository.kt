@@ -23,12 +23,4 @@ import org.springframework.data.jpa.repository.JpaRepository
  *
  * @author Justin Zak
  */
-interface EncryptionProfileRepository: JpaRepository<EncryptionProfile,Long> {
-    /**
-     * retrieve a record by the db ID
-     *
-     * @param id The database ID of the record to retrieve
-     * @returns An instance of [EncryptionProfile] representing the database record or null if the ID was not found
-     */
-    //fun findById(id:Long): EncryptionProfile?
-}
+interface EncryptionProfileRepository: JpaRepository<EncryptionProfileObject,Long>

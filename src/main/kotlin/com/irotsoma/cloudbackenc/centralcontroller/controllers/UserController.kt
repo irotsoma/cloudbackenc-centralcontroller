@@ -25,6 +25,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.Invali
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionProfile
 import mu.KLogging
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
@@ -175,5 +176,33 @@ class UserController {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
         return ResponseEntity(requestedUser!!.cloudBackEncUser(),HttpStatus.OK)
+    }
+
+    /**
+     * Sets up or allows a user to change their default encryption settings profile
+     */
+    @RequestMapping(value=["/{username}/encryption","/encryption"], method = [RequestMethod.POST, RequestMethod.PUT], produces = ["application/json"])
+    fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile): ResponseEntity<Any>{
+        val authorizedUser = SecurityContextHolder.getContext().authentication
+        val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username!!})
+        //if the user is an admin then check if the requested user is found otherwise if not admin respond with
+        //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
+        if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
+            if (requestedUser == null){
+                return ResponseEntity(HttpStatus.NOT_FOUND)
+            }
+        } else if (requestedUser?.username != authorizedUser.name) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+
+        //TODO: validate combination of information in profile
+
+
+        //TODO: add profile to default encryption profile of referenced user
+
+
+        return ResponseEntity(HttpStatus.OK)
     }
 }

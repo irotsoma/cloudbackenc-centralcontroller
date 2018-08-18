@@ -212,7 +212,7 @@ class FileController {
                 return -1L
             }
             //guess that the last valid algorithm is the most secure one as well as the last in the list of valid block sizes and default to that one
-            encryptionProfile = EncryptionProfile(encryptionServiceUuid = null,encryptionIsSymmetric = true,encryptionAlgorithm = validAlgorithms.last().value,encryptionKeyAlgorithm = validAlgorithms.last().keyAlgorithm().value,encryptionBlockSize = validAlgorithms.last().validBlockSizes().last(), secretKey = secretKey.encoded, publicKey = null)
+            encryptionProfile = EncryptionProfileObject(encryptionServiceUuid = null,encryptionIsSymmetric = true,encryptionAlgorithm = validAlgorithms.last().value,encryptionKeyAlgorithm = validAlgorithms.last().keyAlgorithm().value,encryptionBlockSize = validAlgorithms.last().validBlockSizes().last(), secretKey = secretKey.encoded, publicKey = null)
         }
 
         //load factory if it hasn't already been loaded
