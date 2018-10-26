@@ -15,24 +15,26 @@
  */
 
 /*
- * Created by irotsoma on 12/6/16.
+ * Created by irotsoma on 10/26/2018.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
-import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
 
-/**
- * JPA repository for tracked files.
- *
- * @author Justin Zak
- */
-interface FileRepository : JpaRepository<FileObject, UUID> {
-    /**
-     * retrieve a record by the record UUID
-     *
-     * @param fileUuid The UUID of the record to retrieve
-     * @returns An instance of [FileObject] representing the database record or null if the UUID was not found
-     */
-    fun findByFileUuid(fileUuid: UUID): FileObject?
-}
+@Entity
+@Table(name="token")
+class TokenObject(@Id @Column(name="token_uuid", nullable = false)
+                  var tokenUuid: UUID,
+
+                  @Column(name="user_id", nullable = false)
+                  var userId: Long,
+
+                  @Column(name="expiration_date", nullable = false)
+                  var expirationDate: Date,
+
+                  @Column(name="valid", nullable = false)
+                  var valid: Boolean)

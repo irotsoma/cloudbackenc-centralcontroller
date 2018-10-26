@@ -150,7 +150,7 @@ class UserController {
     /**
      * DELETE method for deleting a user from the system (Admin only)
      */
-    @RequestMapping("/{username}", method = [RequestMethod.DELETE], produces = arrayOf("application/json"))
+    @RequestMapping("/{username}", method = [RequestMethod.DELETE], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
     fun deleteUser(@PathVariable username: String) : ResponseEntity<Any>{
         val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()

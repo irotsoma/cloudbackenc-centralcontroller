@@ -15,24 +15,16 @@
  */
 
 /*
- * Created by irotsoma on 12/6/16.
+ * Created by irotsoma on 10/26/2018.
  */
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
-/**
- * JPA repository for tracked files.
- *
- * @author Justin Zak
- */
-interface FileRepository : JpaRepository<FileObject, UUID> {
-    /**
-     * retrieve a record by the record UUID
-     *
-     * @param fileUuid The UUID of the record to retrieve
-     * @returns An instance of [FileObject] representing the database record or null if the UUID was not found
-     */
-    fun findByFileUuid(fileUuid: UUID): FileObject?
+
+interface TokenRepository: JpaRepository<TokenObject, UUID> {
+    fun findByTokenUuid(tokenUuid: UUID): TokenObject?
+    fun findByUserId(userId: Long): List<TokenObject>
+    fun findAllByExpirationDateLessThan(date: Date): List<TokenObject>
 }

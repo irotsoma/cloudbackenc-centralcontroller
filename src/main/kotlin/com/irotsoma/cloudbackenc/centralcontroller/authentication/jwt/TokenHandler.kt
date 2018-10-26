@@ -20,6 +20,9 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.centralcontroller.data.TokenObject
+import com.irotsoma.cloudbackenc.centralcontroller.data.TokenRepository
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -52,9 +55,13 @@ class TokenHandler {
      */
     @Value("\${jwt.expiration}")
     private var expirationTime: Long = 3600000L
+    /** autowired jpa user repository */
+    @Autowired
+    lateinit var userRepository: UserAccountRepository
     @Autowired
     private lateinit var userService: UserAccountDetailsManager
-
+    @Autowired
+    private lateinit var tokenRepository: TokenRepository
     /**
      * Attempts to parse the User information from a token.
      *
@@ -69,36 +76,58 @@ class TokenHandler {
                 .subject ?: return null
         val user = try {
             userService.loadUserByUsername(username) as User
-        } catch (e:UsernameNotFoundException){
+        } catch (e: UsernameNotFoundException){
             null
         }
-        if (user != null){
+        return if (user != null){
             //verify that user is not disabled
             if (user.isEnabled){
-                return user
+                user
             } else {
-                return null
+                null
             }
         } else {
-            return null
+            null
         }
     }
-
+    /**
+     * Attempts to parse the User information from a token.
+     *
+     * @param token The authentication token to parse
+     * @return A UUID or null if the token is invalid.
+     */
+    fun parseUuidFromToken(token: String): UUID? {
+        val id =try{
+            Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .body
+                    .id
+        } catch(ignore: Exception) {
+            null
+        }
+        return if (id != null){
+            UUID.fromString(id)
+        } else {
+            null
+        }
+    }
     /**
      * Verifies that a token is not expired.
      *
+     * Checks token value and database value.
+     *
      * @param token The authentication token to parse
-     * @return true if the token is expired, false if the token is still valid.
+     * @return true if the token is expired or expiration date is missing or token is not in db, false if the token is still valid.
      */
     fun isTokenExpired(token: String):Boolean{
-        val expiration = Jwts.parser()
+        val tokenBody = Jwts.parser()
                 .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .body
-                .expiration
-        return expiration < Date()
+        val expiration: Date? = tokenBody.expiration
+        return (expiration ?: Date(Long.MAX_VALUE) < Date()) && (tokenRepository.findByTokenUuid(UUID.fromString(tokenBody.id))?.expirationDate ?: Date(Long.MAX_VALUE) < Date())
     }
-
     /**
      * Generates a new token for a user setting the expiration date/time based on the application settings.
      *
@@ -111,13 +140,46 @@ class TokenHandler {
             return null
         }
         val now = Date()
+        val id = UUID.randomUUID()
         val expiration = Date(now.time + expirationTime)
+        //add token to DB
+        val newToken = TokenObject(id, userRepository.findByUsername(user.username)!!.id, expiration, true)
+        tokenRepository.saveAndFlush(newToken)
         return AuthenticationToken(Jwts.builder()
-                .setId(UUID.randomUUID().toString())
+                .setId(id.toString())
                 .setSubject(user.username)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact(), expiration)
+    }
+    /**
+     * Looks up the token in the database and returns whether the token is valid. If not in database returns false.
+     *
+     * @param token The authentication token to parse
+     * @return true if the token is marked as valid in the database, false if marked not valid or doesn't exist
+     */
+    fun isTokenValid(token: String): Boolean{
+        val id = Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .body
+                .id
+        return tokenRepository.findByTokenUuid(UUID.fromString(id))?.valid == true
+    }
+    /**
+     * Sets all tokens for this userId to not valid.
+     *
+     * @param userId The user account ID for which to revoke tokens.
+     */
+    fun revokeTokensForUser(userId: Long){
+        val tokens = tokenRepository.findByUserId(userId)
+        tokens.forEach{
+            it.valid = false
+        }
+        if (tokens.isNotEmpty()) {
+            tokenRepository.saveAll(tokens)
+            tokenRepository.flush()
+        }
     }
 }

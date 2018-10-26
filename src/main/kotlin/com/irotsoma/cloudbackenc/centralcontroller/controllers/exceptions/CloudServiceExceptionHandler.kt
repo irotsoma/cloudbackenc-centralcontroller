@@ -16,7 +16,7 @@
 /*
  * Created by irotsoma on 7/13/2016.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.controllers
+package com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions
 
 import com.irotsoma.cloudbackenc.common.RestException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException

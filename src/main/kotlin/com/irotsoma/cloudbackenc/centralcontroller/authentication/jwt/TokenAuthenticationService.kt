@@ -29,8 +29,6 @@ import javax.servlet.http.HttpServletRequest
 /**
  * Validates that a token in the Authorization Bearer header is valid for the user.
  *
- * This is a fairly simple implementation that is not meant to be exceptionally secure especially if the secret is exposed.
- *
  * @author Justin Zak
  */
 @Component
@@ -49,7 +47,7 @@ class TokenAuthenticationService {
      * @return A Spring Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
      */
     fun getAuthentication(request: HttpServletRequest): Authentication? {
-        if (isDisabled?:false){
+        if (isDisabled == true){
             //if the jwt functionality is disabled in properties just skip this
             return null
         } else {
@@ -58,7 +56,7 @@ class TokenAuthenticationService {
             val splitToken = token.split(' ')
             if (splitToken.size == 2 && splitToken[0].toUpperCase() == "BEARER") {
                 //verify token is not expired
-                if (!tokenHandler.isTokenExpired(splitToken[1])) {
+                if (!tokenHandler.isTokenExpired(splitToken[1]) && tokenHandler.isTokenValid(splitToken[1])) {
                     //parse user from token
                     val user = tokenHandler.parseUserFromToken(splitToken[1]) ?: return null
                     return UserAuthentication(user)

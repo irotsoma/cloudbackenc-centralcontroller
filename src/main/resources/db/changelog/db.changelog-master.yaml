@@ -313,3 +313,28 @@ databaseChangeLog:
                   type: varbinary(5000)
                   constraints:
                     nullable: true
+        - createTable:
+            tableName: token
+            columns:
+              - column:
+                  name: token_uuid
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiration_date
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
