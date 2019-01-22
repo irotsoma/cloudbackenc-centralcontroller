@@ -79,7 +79,7 @@ class FileDistributor {
             currentSpaceAvailable[userId] = HashMap()
             for ((key, value) in cloudServiceFactoryRepository.extensions) {
                 try {
-                    val factory = value.newInstance() as CloudServiceFactory
+                    val factory = value.getDeclaredConstructor().newInstance() as CloudServiceFactory
                     if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid) != null) {
                         val user = userAccountDetailsManager.userRepository.findById(userId)
                         if (user.isPresent) {
@@ -104,7 +104,7 @@ class FileDistributor {
      */
     fun updateAvailableSpace (user: UserAccount, cloudServiceUuid: UUID){
         try {
-            val factory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.newInstance() as CloudServiceFactory?
+            val factory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.getDeclaredConstructor()?.newInstance() as CloudServiceFactory?
             if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(user.id, cloudServiceUuid) != null && factory != null) {
                 val userAccount = userAccountDetailsManager.userRepository.findById(user.id)
                 if (userAccount.isPresent) {

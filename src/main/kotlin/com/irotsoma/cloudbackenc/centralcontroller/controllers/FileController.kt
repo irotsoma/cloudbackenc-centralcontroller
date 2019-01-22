@@ -28,10 +28,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.files.FileDistributor
 import com.irotsoma.cloudbackenc.common.Utilities.hashFile
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
-import com.irotsoma.cloudbackenc.common.encryption.EncryptionAlgorithms
-import com.irotsoma.cloudbackenc.common.encryption.EncryptionAsymmetricEncryptionAlgorithms
-import com.irotsoma.cloudbackenc.common.encryption.EncryptionFactory
-import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricEncryptionAlgorithms
+import com.irotsoma.cloudbackenc.common.encryption.*
 import mu.KLogging
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -125,7 +122,7 @@ class FileController {
                             } else {
                                 //delete the file using the plugin service
                                 try {
-                                    val factory = cloudServiceFactoryClass.newInstance() as CloudServiceFactory
+                                    val factory = cloudServiceFactoryClass.getDeclaredConstructor().newInstance() as CloudServiceFactory
                                     val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.get().toCloudServiceFile(), currentUser.cloudBackEncUser())
                                     if (deleteSuccess) {
                                         //delete the entry from the database
@@ -152,7 +149,7 @@ class FileController {
         val erroredList = ArrayList<UUID>()
         var cloudServiceUuid = fileDistributor.determineBestLocation(currentUser, file.size)
         while (cloudServiceUuid != null) {
-            val cloudServiceFactory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.newInstance() as CloudServiceFactory?
+            val cloudServiceFactory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.getDeclaredConstructor()?.newInstance() as CloudServiceFactory?
             if (cloudServiceFactory == null) {
                 logger.error("Unable to load the cloud service extension with UUID: $cloudServiceUuid for file with UUID: ${fileObject.fileUuid}.")
                 return ResponseEntity(Pair(fileObject.fileUuid, -1L), HttpStatus.INTERNAL_SERVER_ERROR)
@@ -182,7 +179,7 @@ class FileController {
         val secureRandom = SecureRandom.getInstanceStrong()
 
         val encryptionUuid = currentUser.defaultEncryptionProfile?.encryptionServiceUuid ?: UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)
-        val encryptionFactory = (encryptionExtensionRepository.extensions[encryptionUuid])?.newInstance() as EncryptionFactory? ?: encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)]?.newInstance() as EncryptionFactory?
+        val encryptionFactory = (encryptionExtensionRepository.extensions[encryptionUuid])?.getDeclaredConstructor()?.newInstance() as EncryptionFactory? ?: encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)]?.getDeclaredConstructor()?.newInstance() as EncryptionFactory?
         if (encryptionFactory == null){
             logger.error("Unable to create the requested or the default encryption factory.")
             return -1L
@@ -202,7 +199,7 @@ class FileController {
                 return -1L
             }
             val validAlgorithms = try {
-                EncryptionSymmetricEncryptionAlgorithms.values().filter { it.keyAlgorithm() == EncryptionSymmetricEncryptionAlgorithms.valueOf(secretKey.algorithm) }
+                EncryptionSymmetricEncryptionAlgorithms.values().filter { it.keyAlgorithm() == EncryptionSymmetricKeyAlgorithms.valueOf(secretKey.algorithm) }
             } catch(e: Exception){
                 logger.error("Unable to determine the default key algorithm or a list of valid encryption algorithms for the default key algorithm using the extension with UUID: ${encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid}")
                 return -1L

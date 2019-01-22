@@ -41,7 +41,7 @@ class EncryptionTests {
     @Test
     fun testEncryptionRepository(){
         val encryptionFactoryClass = encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)] ?: error("Could not load default encryption extension.")
-        val encryptionFactory = encryptionFactoryClass.newInstance()
+        val encryptionFactory = encryptionFactoryClass.getDeclaredConstructor().newInstance()
         assert(encryptionFactory is EncryptionFactory)
         assert(encryptionFactory.extensionUuid == UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid))
     }

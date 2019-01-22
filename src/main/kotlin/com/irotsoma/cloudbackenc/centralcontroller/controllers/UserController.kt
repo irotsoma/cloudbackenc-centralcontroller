@@ -165,7 +165,7 @@ class UserController {
     fun getUser(@PathVariable(required=false) username: String?) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username!!})
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
         //if the user is an admin then check if the requested user is found otherwise if not admin respond with
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
@@ -185,7 +185,7 @@ class UserController {
     fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile): ResponseEntity<Any>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username!!})
+        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
         //if the user is an admin then check if the requested user is found otherwise if not admin respond with
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){

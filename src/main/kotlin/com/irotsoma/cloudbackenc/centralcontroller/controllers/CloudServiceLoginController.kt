@@ -78,7 +78,7 @@ class CloudServiceLoginController {
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = (cloudServiceFactory.newInstance() as CloudServiceFactory).authenticationService
+        val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val response : CloudServiceUser.STATE
@@ -119,7 +119,7 @@ class CloudServiceLoginController {
     fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = (cloudServiceFactory.newInstance() as CloudServiceFactory).authenticationService
+        val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
