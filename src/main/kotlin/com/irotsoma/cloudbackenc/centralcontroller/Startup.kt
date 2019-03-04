@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2018  Irotsoma, LLC
+ * Copyright (C) 2016-2019  Irotsoma, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,9 +21,6 @@ package com.irotsoma.cloudbackenc.centralcontroller
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 
 
 /**
