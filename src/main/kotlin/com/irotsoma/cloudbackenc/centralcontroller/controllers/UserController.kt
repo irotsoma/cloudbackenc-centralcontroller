@@ -22,10 +22,14 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.DuplicateUserException
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
+import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileObject
+import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
+import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
-import com.irotsoma.cloudbackenc.common.encryption.EncryptionProfile
+import com.irotsoma.cloudbackenc.common.encryption.*
 import mu.KLogging
 import org.apache.commons.validator.routines.EmailValidator
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,6 +48,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
+import java.security.KeyPair
+import java.util.*
+import javax.crypto.SecretKey
 import javax.mail.MessagingException
 import javax.servlet.http.HttpServletResponse
 
@@ -66,9 +73,17 @@ class UserController {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
     @Autowired
-    lateinit var messageSource: MessageSource
+    private lateinit var encryptionProfileRepository: EncryptionProfileRepository
+    @Autowired
+    private lateinit var messageSource: MessageSource
     @Value("\${centralcontroller.api.v1.path}")
-    lateinit var apiPath: String
+    private lateinit var apiPath: String
+    @Value("\${encryptionextensions.defaultExtensionUuid}")
+    private lateinit var defaultEncryptionService: String
+    @Autowired
+    private lateinit var encryptionExtensionRepository: EncryptionExtensionRepository
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
 
     /** Post method for creating new users (Admin only) */
     @RequestMapping(method = [RequestMethod.POST], produces = ["application/json"])
@@ -77,7 +92,7 @@ class UserController {
         //val authorizedUser = SecurityContextHolder.getContext().authentication
         val locale = LocaleContextHolder.getLocale()
         //check to see if there is a duplicate user
-        if (userAccountDetailsManager.userRepository.findByUsername(user.username) != null){
+        if (userRepository.findByUsername(user.username) != null){
             throw DuplicateUserException()
         }
 
@@ -90,7 +105,7 @@ class UserController {
         }
         //create and save new user
         val newUserAccount = UserAccount(user.username, user.password, user.email, user.enabled, user.roles)
-        userAccountDetailsManager.userRepository.saveAndFlush(newUserAccount)
+        userRepository.saveAndFlush(newUserAccount)
         if (!user.email.isNullOrBlank()) {
             val mail = javaMailSender.createMimeMessage()
             try {
@@ -127,14 +142,14 @@ class UserController {
         }
         //
         try{
-            val userToUpdate = userAccountDetailsManager.userRepository.findByUsername(updatedUser.username) ?: throw CloudBackEncUserNotFound()
+            val userToUpdate = userRepository.findByUsername(updatedUser.username) ?: throw CloudBackEncUserNotFound()
             if (updatedUser.password != CloudBackEncUser.PASSWORD_MASKED){
                 userToUpdate.password = updatedUser.password
             }
             if (updatedUser.email != null){
                 userToUpdate.email = updatedUser.email
             }
-            userAccountDetailsManager.userRepository.saveAndFlush(userToUpdate)
+            userRepository.saveAndFlush(userToUpdate)
         } catch(e: UsernameNotFoundException){
             throw CloudBackEncUserNotFound()
         }
@@ -153,8 +168,8 @@ class UserController {
     @RequestMapping("/{username}", method = [RequestMethod.DELETE], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
     fun deleteUser(@PathVariable username: String) : ResponseEntity<Any>{
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()
-        userAccountDetailsManager.userRepository.delete(requestedUser)
+        val requestedUser = userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()
+        userRepository.delete(requestedUser)
         return ResponseEntity(HttpStatus.OK)
     }
 
@@ -165,7 +180,7 @@ class UserController {
     fun getUser(@PathVariable(required=false) username: String?) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
+        val requestedUser = userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
         //if the user is an admin then check if the requested user is found otherwise if not admin respond with
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
@@ -185,7 +200,7 @@ class UserController {
     fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile): ResponseEntity<Any>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userAccountDetailsManager.userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
+        val requestedUser = userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
         //if the user is an admin then check if the requested user is found otherwise if not admin respond with
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
@@ -196,12 +211,47 @@ class UserController {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-
         //TODO: validate combination of information in profile
+        if(profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
+            if (profile.encryptionBlockSize !in (profile.encryptionAlgorithm as EncryptionSymmetricEncryptionAlgorithms).validBlockSizes()) {
+                throw EncryptionException("Invalid block size: ${profile.encryptionBlockSize} for ${profile.encryptionAlgorithm.value}")
+            }
+            if ((profile.encryptionAlgorithm as EncryptionSymmetricEncryptionAlgorithms).keyAlgorithm() != (profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms)){
+                throw EncryptionException("Encryption algorithm / key algorithm mismatch: ${profile.encryptionAlgorithm.value} / ${profile.encryptionKeyAlgorithm.value}")
+            }
+        } else {
+            throw EncryptionException("Only symmetric encryption is currently supported.")
+        }
 
 
-        //TODO: add profile to default encryption profile of referenced user
 
+
+
+        val encryptionUuid = profile.encryptionServiceUuid?: UUID.fromString(defaultEncryptionService)
+        val encryptionFactory = (encryptionExtensionRepository.extensions[encryptionUuid])?.getDeclaredConstructor()?.newInstance() as EncryptionFactory? ?: encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)]?.getDeclaredConstructor()?.newInstance() as EncryptionFactory? ?: throw EncryptionException("Unable to create the requested or the default encryption factory.")
+        var secretKey: SecretKey? = null
+        var keyPair: KeyPair? = null
+        if (profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
+            secretKey = encryptionFactory.encryptionKeyService.generateSymmetricKey(profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms,
+                    profile.encryptionKeySize?:(profile.encryptionAlgorithm as EncryptionSymmetricKeyAlgorithms).validKeyLengths().last())
+        } else if (profile.encryptionType == EncryptionAlgorithmTypes.ASYMMETRIC) {
+            keyPair = encryptionFactory.encryptionKeyService.generateAsymmetricKeys(profile.encryptionKeyAlgorithm as EncryptionAsymmetricKeyAlgorithms,
+                    profile.encryptionKeySize ?: (profile.encryptionAlgorithm as EncryptionAsymmetricKeyAlgorithms).validKeyLengths().last())
+        } else {
+            throw EncryptionException("Only symmetric encryption is currently supported.")
+        }
+
+        val encryptionProfileObject = EncryptionProfileObject(encryptionUuid ,
+                profile.encryptionType.value,
+                profile.encryptionAlgorithm.value,
+                profile.encryptionKeyAlgorithm.value,
+                profile.encryptionBlockSize,
+                secretKey?.encoded ?: keyPair?.private?.encoded ?:
+                    throw EncryptionException("\"Error generating keys. Null returned by key generator. Algorithm ${profile.encryptionKeyAlgorithm.value}; Encryption service UUID: $encryptionUuid\""),
+                keyPair?.public?.encoded)
+        val encryptionProfileId = encryptionProfileRepository.saveAndFlush(encryptionProfileObject)
+        requestedUser!!.defaultEncryptionProfile = encryptionProfileId
+        userRepository.saveAndFlush(requestedUser)
 
         return ResponseEntity(HttpStatus.OK)
     }

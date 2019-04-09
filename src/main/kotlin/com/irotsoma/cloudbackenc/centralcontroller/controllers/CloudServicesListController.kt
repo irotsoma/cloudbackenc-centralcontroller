@@ -57,7 +57,6 @@ class CloudServicesListController {
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
-
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
@@ -76,7 +75,7 @@ class CloudServicesListController {
         //return an empty list if the user doesn't exist
         val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
+        val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
         //authorized user requesting the list must either be the user in the request or be an admin
         if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true))) {

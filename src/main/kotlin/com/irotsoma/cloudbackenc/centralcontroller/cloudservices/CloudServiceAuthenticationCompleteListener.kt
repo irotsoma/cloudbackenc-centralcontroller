@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceAuthenticationRefreshListener
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
@@ -34,7 +35,7 @@ import java.util.*
  * @property userCloudServiceRepository JPA repository that stores the login information for a cloud service
  * @author Justin Zak
  */
-class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, override var cloudServiceUsername: String?, val userAccountDetailsManager: UserAccountDetailsManager, val userCloudServiceRepository: UserCloudServiceRepository) : CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, override var cloudServiceUsername: String?, private val userAccountDetailsManager: UserAccountDetailsManager, private val userCloudServiceRepository: UserCloudServiceRepository, private val userRepository: UserAccountRepository) : CloudServiceAuthenticationRefreshListener {
 
     /**
      * Called when the authentication state changes to update the status in the database.
@@ -44,7 +45,7 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
      */
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         if (user != null) {
-            val userId = userAccountDetailsManager.userRepository.findByUsername(user!!.username)?.id ?: return
+            val userId = userRepository.findByUsername(user!!.username)?.id ?: return
             var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
                 cloudServiceUserInfo = UserCloudService(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})

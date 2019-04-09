@@ -24,7 +24,7 @@ import javax.persistence.*
  *
  * @property id Database generated ID for the record.
  * @property encryptionServiceUuid UUID of the encryption service extension
- * @property encryptionIsSymmetric Defines if the encryption algorithm used is symmetric or asymmetric
+ * @property encryptionType Defines the type of encryption such as symmetric, asymmetric, password based, etc.
  * @property encryptionAlgorithm The encryption algorithm used
  * @property encryptionKeyAlgorithm The encryption key algorithm used
  * @property encryptionBlockSize The block size used for block cypher algorithms
@@ -34,7 +34,7 @@ import javax.persistence.*
 @Entity
 @Table(name = "encryption_profile")
 class EncryptionProfileObject(@Column(name = "encryption_service_uuid", nullable = true, updatable = false) val encryptionServiceUuid:UUID?,
-                              @Column(name = "encryption_is_symmetric", nullable = false, updatable = false) val encryptionIsSymmetric:Boolean,
+                              @Column(name = "encryption_type", nullable = false, updatable = false) val encryptionType:String,
                               @Column(name = "encryption_algorithm", nullable = false, updatable = false) val encryptionAlgorithm:String,
                               @Column(name = "encryption_key_algorithm", nullable = false, updatable = false) val encryptionKeyAlgorithm:String,
                               @Column(name = "encryption_block_size", nullable = true, updatable = false) val encryptionBlockSize:Int?,

@@ -25,6 +25,15 @@ import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Table
 
+/**
+ * A JPA entity for storing information about security tokens. Used to verify tokens and/or invalidate tokens.
+ *
+ * @param tokenUuid The UUID of the security token.
+ * @param userId The user ID originally associated with the token.
+ * @param expirationDate The expiration date of the token.
+ * @param valid Whether or not the token is still valid. Set to false to invalidate a token prior to its expiration.
+ * @author Justin Zak
+ */
 @Entity
 @Table(name="token")
 class TokenObject(@Id @Column(name="token_uuid", nullable = false)

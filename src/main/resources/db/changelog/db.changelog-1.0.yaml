@@ -1,0 +1,340 @@
+#
+# Copyright (C) 2016-2019  Irotsoma, LLC
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+#
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: irotsoma
+      changes:
+        - createTable:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: nvarchar(1023)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: nvarchar(1023)
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: default_encryption_profile_id
+                  type: long
+                  constraints:
+                    nullable: true
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: username
+                  value: test
+              - column:
+                  name: password
+                  value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: role
+                  value: ROLE_TEST
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: role
+                  value: BADTESTVALUE
+        - insert:
+            tableName: user_account
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: username
+                  value: admin
+              - column:
+                  name: password
+                  value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 3
+              - column:
+                  name: user_id
+                  value: 2
+              - column:
+                  name: role
+                  value: ROLE_ADMIN
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: id
+                  value: 4
+              - column:
+                  name: user_id
+                  value: 2
+              - column:
+                  name: role
+                  value: ROLE_USER
+        - createTable:
+            tableName: file
+            columns:
+              - column:
+                  name: file_uuid
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: long
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: cloud_service_file
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: file_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cloud_service_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: locator
+                  type: varchar(5000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: path
+                  type: varchar(5000)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: version
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lastUpdated
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_profile_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: initialization_vector
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: original_hash
+                  type: varchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encrypted_hash
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: user_cloud_service
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: cloud_service_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cloud_service_username
+                  type: varchar(1023)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: logged_in
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: user_cloud_service
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: cloud_service_uuid
+                  value: '1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375'
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: cloud_service_username
+                  value: 'test'
+              - column:
+                  name: logged_in
+                  value: true
+        - createTable:
+            tableName: encryption_profile
+            columns:
+              - column:
+                  name: id
+                  type: long
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: encryption_service_uuid
+                  type: uuid
+                  constraints:
+                    nullable: true
+              - column:
+                  name: encryption_type
+                  type: varchar(5000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_algorithm
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_key_algorithm
+                  type: nvarchar(1023)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encryption_block_size
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: secret_key
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: public_key
+                  type: varbinary(5000)
+                  constraints:
+                    nullable: true
+        - createTable:
+            tableName: token
+            columns:
+              - column:
+                  name: token_uuid
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: long
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiration_date
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

@@ -81,6 +81,8 @@ class FileController {
     @Autowired
     private lateinit var encryptionExtensionRepository: EncryptionExtensionRepository
 
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
     /**
      * Call to send a file to a cloud service.  Can be either a new file or a new version of an existing file.
      *
@@ -92,7 +94,7 @@ class FileController {
     @ResponseBody fun receiveNewFile(@RequestParam("uuid") fileUuid: UUID?, @RequestParam("hash") hash:String?, @RequestParam("file") file: MultipartFile): ResponseEntity<Pair<UUID,Long>> {
 
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
+        val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         var fileObject: FileObject? = if (fileUuid != null) {
             fileRepository.findByFileUuid(fileUuid)
         } else {
@@ -209,13 +211,13 @@ class FileController {
                 return -1L
             }
             //guess that the last valid algorithm is the most secure one as well as the last in the list of valid block sizes and default to that one
-            encryptionProfile = EncryptionProfileObject(encryptionServiceUuid = null,encryptionIsSymmetric = true,encryptionAlgorithm = validAlgorithms.last().value,encryptionKeyAlgorithm = validAlgorithms.last().keyAlgorithm().value,encryptionBlockSize = validAlgorithms.last().validBlockSizes().last(), secretKey = secretKey.encoded, publicKey = null)
+            encryptionProfile = EncryptionProfileObject(null, EncryptionAlgorithmTypes.SYMMETRIC.value,encryptionAlgorithm = validAlgorithms.last().value,encryptionKeyAlgorithm = validAlgorithms.last().keyAlgorithm().value,encryptionBlockSize = validAlgorithms.last().validBlockSizes().last(), secretKey = secretKey.encoded, publicKey = null)
         }
 
         //load factory if it hasn't already been loaded
         val encryptionKey: Key
         val encryptionAlgorithm: EncryptionAlgorithms
-        if (encryptionProfile.encryptionIsSymmetric) {
+        if (encryptionProfile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC.value) {
             encryptionAlgorithm = EncryptionSymmetricEncryptionAlgorithms.valueOf(encryptionProfile.encryptionAlgorithm)
             encryptionKey = SecretKeySpec(encryptionProfile.secretKey, encryptionProfile.encryptionKeyAlgorithm)
         } else {

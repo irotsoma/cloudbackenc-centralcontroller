@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component
 class UserAccountDetailsManager : UserDetailsService {
     /** autowired jpa user repository */
     @Autowired
-    lateinit var userRepository: UserAccountRepository
+    private lateinit var userRepository: UserAccountRepository
 
     /**
      * Loads a user from the database by searching for the username and returns a Spring User object.

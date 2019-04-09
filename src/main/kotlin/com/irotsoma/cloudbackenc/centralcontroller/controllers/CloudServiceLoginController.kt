@@ -23,6 +23,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAut
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
@@ -66,6 +67,8 @@ class CloudServiceLoginController {
     private lateinit var userCloudServiceRepository: UserCloudServiceRepository
     @Autowired
     lateinit var messageSource: MessageSource
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
 
     /**
      * Rest POST service which calls the login function of the cloud service.
@@ -80,7 +83,7 @@ class CloudServiceLoginController {
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
         val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
+        val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val response : CloudServiceUser.STATE
         //debug message: ignore and let it default to null if URL is invalid or missing
         try {
@@ -91,7 +94,7 @@ class CloudServiceLoginController {
         //launch extension's login service
         //TODO: figure out how to make this async with a timeout
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), if (user.username.isEmpty()){null}else{user.username}, userAccountDetailsManager, userCloudServiceRepository)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), if (user.username.isEmpty()){null}else{user.username}, userAccountDetailsManager, userCloudServiceRepository, userRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
@@ -121,10 +124,10 @@ class CloudServiceLoginController {
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
         val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
-        val currentUser = userAccountDetailsManager.userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
+        val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), null, userAccountDetailsManager, userCloudServiceRepository)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), null, userAccountDetailsManager, userCloudServiceRepository, userRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
             authenticationService.logout(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){

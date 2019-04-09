@@ -32,7 +32,7 @@ interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Lon
      * This is used by the periodic cleanup routine.
      *
      * @param profile The EncryptionProfileObject to search files for.
-     * @returns An instance of [CloudServiceFileObject] representing the database record or empty list if the [EncryptionProfileObject] was not found
+     * @return An instance of [CloudServiceFileObject] representing the database record or empty list if the [EncryptionProfileObject] was not found
      */
     fun findByEncryptionProfile(profile: EncryptionProfileObject): List<CloudServiceFileObject>
 }

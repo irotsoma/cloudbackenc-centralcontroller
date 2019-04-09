@@ -20,6 +20,8 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions
 
 import com.irotsoma.cloudbackenc.common.RestException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
+import mu.KLogging
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -31,12 +33,15 @@ import javax.servlet.http.HttpServletResponse
  * Controller advice for custom exceptions.  Allows for customizing the messages returned to the REST client.
  */
 @ControllerAdvice
-class CloudServiceExceptionHandler : ResponseEntityExceptionHandler() {
+class CustomExceptionHandler : ResponseEntityExceptionHandler() {
+    /** kotlin-logging implementation */
+    companion object: KLogging()
     /**
      * Generates a message for instances of CloudServiceException thrown by any REST controllers.
      */
     @ExceptionHandler(CloudServiceException::class)
     fun handleCloudServiceException(response: HttpServletResponse, exception: CloudServiceException) : String?{
+        logger.error("Cloud Service Exception: ${exception.message}")
         response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.message)
         return exception.message
     }
@@ -45,7 +50,17 @@ class CloudServiceExceptionHandler : ResponseEntityExceptionHandler() {
      */
     @ExceptionHandler(RestException::class)
     fun handleRestException(response: HttpServletResponse, exception: RestException) : String?{
+        logger.error("Rest Exception: ${exception.type.friendlyMessage(LocaleContextHolder.getLocale())}")
         response.sendError(exception.type.httpStatusCode(),exception.type.friendlyMessage(LocaleContextHolder.getLocale()))
         return exception.type.friendlyMessage(LocaleContextHolder.getLocale())
+    }
+    /**
+     * Generates a message for instances of EncryptionException thrown by any REST controllers.
+     */
+    @ExceptionHandler(EncryptionException::class)
+    fun handleEncryptionException(response: HttpServletResponse, exception: EncryptionException) : String?{
+        logger.error("Encryption Exception: ${exception.message}")
+        response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.message)
+        return exception.message
     }
 }

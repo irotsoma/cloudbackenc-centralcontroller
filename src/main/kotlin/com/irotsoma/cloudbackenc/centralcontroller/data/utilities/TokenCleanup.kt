@@ -26,7 +26,10 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 /**
- * Period service to clean out any tokens that expired more than 1 day ago.
+ * Periodic service to clean out any tokens that expired more than 1 day ago.
+ *
+ * @property tokenRepository Autowired instance of JPA repository for token metadata
+ * @author Justin Zak
  */
 @Component
 class TokenCleanup {
@@ -34,6 +37,11 @@ class TokenCleanup {
     @Autowired
     private lateinit var tokenRepository: TokenRepository
 
+    /**
+     * Periodically runs to delete all tokens that expired more than 1 day ago.
+     *
+     * Period is specified by property: centralcontroller.tokens.clean.interval
+     */
     @Scheduled(fixedDelayString = "\${centralcontroller.tokens.clean.interval}")
     fun doCleanup(){
         //find all tokens expired for more than 7 days

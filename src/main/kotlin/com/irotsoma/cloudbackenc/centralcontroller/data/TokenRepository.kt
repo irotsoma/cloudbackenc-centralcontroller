@@ -22,9 +22,33 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
-
+/**
+ * JPA repository for storing security token metadata.
+ *
+ * @author Justin Zak
+ */
 interface TokenRepository: JpaRepository<TokenObject, UUID> {
+    /**
+     * Retrieve a token by its UUID
+     *
+     * @param tokenUuid The UUID of the token to retrieve
+     * @return An instance of [TokenObject] representing the token or null if not found.
+     */
     fun findByTokenUuid(tokenUuid: UUID): TokenObject?
+
+    /**
+     * Retrieve all tokens assigned to a particular user
+     *
+     * @param userId The user ID of the user to retrieve tokens for
+     * @return A list of [TokenObject]s
+     */
     fun findByUserId(userId: Long): List<TokenObject>
+
+    /**
+     * Retrieve all tokens with an expiration date less than a certain date. Handy for cleaning out expired tokens from the DB
+     *
+     * @param date The expiration date before which to retrieve tokens
+     * @return A list of [TokenObject]s
+     */
     fun findAllByExpirationDateLessThan(date: Date): List<TokenObject>
 }

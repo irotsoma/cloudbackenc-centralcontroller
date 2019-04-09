@@ -23,6 +23,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +57,8 @@ class FileDistributor {
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
 
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
     val currentSpaceAvailable = HashMap<Long,HashMap<UUID, Long>>()
 
     /**
@@ -81,7 +84,7 @@ class FileDistributor {
                 try {
                     val factory = value.getDeclaredConstructor().newInstance() as CloudServiceFactory
                     if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid) != null) {
-                        val user = userAccountDetailsManager.userRepository.findById(userId)
+                        val user = userRepository.findById(userId)
                         if (user.isPresent) {
                             val space = factory.cloudServiceFileIOService.availableSpace(user.get().cloudBackEncUser())
                             //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
@@ -106,7 +109,7 @@ class FileDistributor {
         try {
             val factory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.getDeclaredConstructor()?.newInstance() as CloudServiceFactory?
             if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(user.id, cloudServiceUuid) != null && factory != null) {
-                val userAccount = userAccountDetailsManager.userRepository.findById(user.id)
+                val userAccount = userRepository.findById(user.id)
                 if (userAccount.isPresent) {
                     val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())
                     //if availableSpace returns null, then it either failed or is unavailable, so retain the previous value if present or ignore if not
