@@ -32,6 +32,7 @@ import com.irotsoma.cloudbackenc.common.encryption.*
 import mu.KLogging
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
@@ -59,6 +60,7 @@ import javax.crypto.spec.SecretKeySpec
  * @property userAccountDetailsManager Autowired instance of user account manager
  * @property encryptionExtensionRepository Repository of encryption extensions
  */
+@Lazy
 @RestController
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/files")
 class FileController {
@@ -173,7 +175,7 @@ class FileController {
         return ResponseEntity(Pair(fileObject.fileUuid, -1L), HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
-    private fun sendFile(fileObject:FileObject, cloudServiceFactory: CloudServiceFactory, currentUser: UserAccount, localFile: File, reportedHash: String?):Long{
+    private fun sendFile(fileObject:FileObject, cloudServiceFactory: CloudServiceFactory, currentUser: UserAccountObject, localFile: File, reportedHash: String?):Long{
 
         val originalHash = hashFile(localFile)
         if ((!reportedHash.isNullOrEmpty()) && (reportedHash != originalHash)){

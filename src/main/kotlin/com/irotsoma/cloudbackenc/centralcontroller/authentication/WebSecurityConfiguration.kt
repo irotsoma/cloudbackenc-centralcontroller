@@ -19,7 +19,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.StatelessAuthenticationFilter
-import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
@@ -51,7 +51,7 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
     lateinit var statelessAuthenticationFilter: StatelessAuthenticationFilter
     /** Adds the user account manager to REST controllers with a password encoder for hashing passwords */
     override fun configure(auth: AuthenticationManagerBuilder){
-        auth.userDetailsService(this.userDetailsManager).passwordEncoder(UserAccount.PASSWORD_ENCODER)
+        auth.userDetailsService(this.userDetailsManager).passwordEncoder(UserAccountObject.PASSWORD_ENCODER)
     }
     /** Security configuration settings for REST controllers */
     override fun configure(http: HttpSecurity){

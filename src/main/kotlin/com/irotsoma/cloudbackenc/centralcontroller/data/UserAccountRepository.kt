@@ -25,27 +25,27 @@ import org.springframework.data.jpa.repository.JpaRepository
  *
  * @author Justin Zak
  */
-interface UserAccountRepository : JpaRepository<UserAccount, Long> {
+interface UserAccountRepository : JpaRepository<UserAccountObject, Long> {
     /**
      * retrieve a record by the username of the user
      *
      * @param username The username of the user to retrieve
-     * @returns An instance of [UserAccount] representing the database record or null if the username was not found
+     * @returns An instance of [UserAccountObject] representing the database record or null if the username was not found
      */
-    fun findByUsername(username: String): UserAccount?
+    fun findByUsername(username: String): UserAccountObject?
     /**
      * retrieve a record by the user's email address
      *
      * @param email The email address of the user to retrieve
-     * @returns An instance of [UserAccount] representing the database record or null if the email address was not found
+     * @returns An instance of [UserAccountObject] representing the database record or null if the email address was not found
      */
-    fun findByEmail (email: String): UserAccount?
+    fun findByEmail (email: String): UserAccountObject?
     /**
      * retrieve a record by a specific default encryption profile.
      * This is used by the periodic cleanup routine.
      *
      * @param profile The EncryptionProfileObject to search users for.
-     * @returns An instance of [UserAccount] representing the database record or empty list if the [EncryptionProfileObject] was not found
+     * @returns An instance of [UserAccountObject] representing the database record or empty list if the [EncryptionProfileObject] was not found
      */
-    fun findByDefaultEncryptionProfile(profile: EncryptionProfileObject): List<UserAccount>
+    fun findByDefaultEncryptionProfile(profile: EncryptionProfileObject): List<UserAccountObject>
 }

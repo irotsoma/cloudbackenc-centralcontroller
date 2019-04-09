@@ -28,14 +28,16 @@ import java.util.*
 
 /**
  * Implementation of listener that updates the database to the appropriate login status for a particular cloud service
+ * This should not be a spring bean as the extension may not implement spring so beans must be passed as parameters instead of autowired
  *
  * @property user The internal user associated with the cloud service.  Required in order to appropriately update the database.
  * @property cloudServiceUsername The username used for logging in to the cloud service.
- * @property userAccountDetailsManager Autowired instance of user account manager
- * @property userCloudServiceRepository JPA repository that stores the login information for a cloud service
+ * @property userAccountDetailsManager Instance of user account manager
+ * @property cloudServiceUserRepository JPA repository that stores the login information for a cloud service
+ * @property userRepository JPA repository that stores internal user information
  * @author Justin Zak
  */
-class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, override var cloudServiceUsername: String?, private val userAccountDetailsManager: UserAccountDetailsManager, private val userCloudServiceRepository: UserCloudServiceRepository, private val userRepository: UserAccountRepository) : CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, private val userAccountDetailsManager: UserAccountDetailsManager, private val userRepository: UserAccountRepository, override var cloudServiceUsername: String?, private val cloudServiceUserRepository: CloudServiceUserRepository) : CloudServiceAuthenticationRefreshListener {
 
     /**
      * Called when the authentication state changes to update the status in the database.
@@ -46,12 +48,12 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
         if (user != null) {
             val userId = userRepository.findByUsername(user!!.username)?.id ?: return
-            var cloudServiceUserInfo = userCloudServiceRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+            var cloudServiceUserInfo = cloudServiceUserRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
-                cloudServiceUserInfo = UserCloudService(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+                cloudServiceUserInfo = CloudServiceUserObject(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             }
             cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
-            userCloudServiceRepository.save(cloudServiceUserInfo)
+            cloudServiceUserRepository.save(cloudServiceUserInfo)
         }
     }
 }

@@ -42,12 +42,11 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "user_account")
-class UserAccount(@Column(name = "username", nullable = false, updatable = false) val username: String,
-                  password: String,
-                  //TODO: Add validation for email formatting
-                  @Column(name = "email", nullable = true) var email: String?,
-                  @Column(name = "enabled", nullable = false) var enabled: Boolean,
-                  roles: List<CloudBackEncRoles>) {
+class UserAccountObject(@Column(name = "username", nullable = false, updatable = false) val username: String,
+                        password: String,
+                        @Column(name = "email", nullable = true) var email: String?,
+                        @Column(name = "enabled", nullable = false) var enabled: Boolean,
+                        roles: List<CloudBackEncRoles>) {
     /** kotlin-logging implementation */
     companion object : KLogging() {
         /** the type of password encoder used to hash passwords before storing them */

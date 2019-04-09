@@ -24,7 +24,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.Duplic
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileRepository
-import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -63,6 +64,7 @@ import javax.servlet.http.HttpServletResponse
  * @property messageSource autowired message source for localization
  * @property apiPath autowired path for the current api version
  */
+@Lazy
 @RestController
 @RequestMapping("\${centralcontroller.api.v1.path}/users")
 class UserController {
@@ -105,7 +107,7 @@ class UserController {
             }
         }
         //create and save new user
-        val newUserAccount = UserAccount(user.username, user.password, user.email, user.enabled, user.roles)
+        val newUserAccount = UserAccountObject(user.username, user.password, user.email, user.enabled, user.roles)
         userRepository.saveAndFlush(newUserAccount)
         //send email to user
         val locale = LocaleContextHolder.getLocale()

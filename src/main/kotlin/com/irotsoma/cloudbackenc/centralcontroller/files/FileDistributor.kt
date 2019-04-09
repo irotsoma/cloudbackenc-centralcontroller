@@ -21,8 +21,8 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
-import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccount
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
+import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import mu.KLogging
@@ -36,7 +36,7 @@ import java.util.*
  *
  * @author Justin Zak
  * @property cloudServiceFactoryRepository Autowired repository for cloud service extensions
- * @property userCloudServiceRepository Autowired jpa repository of settings for logging in to cloud services
+ * @property cloudServiceUserRepository Autowired jpa repository of settings for logging in to cloud services
  * @property userAccountDetailsManager Autowired instance of user account manager
  * @property currentSpaceAvailable A map indexed by user ID containing a map of available space indexed by cloud service extension UUIDs
 */
@@ -52,7 +52,7 @@ class FileDistributor {
     lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
 
     @Autowired
-    lateinit var userCloudServiceRepository: UserCloudServiceRepository
+    lateinit var cloudServiceUserRepository: CloudServiceUserRepository
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
@@ -64,10 +64,10 @@ class FileDistributor {
     /**
      * function to automatically determine the best location to store a file of a given size
      *
-     * @param user the UserAccount of the internal user to which the file belongs
+     * @param user the UserAccountObject of the internal user to which the file belongs
      * @param fileSize The size of the file to be stored in bytes
      */
-    fun determineBestLocation(user: UserAccount, fileSize: Long, excludeList:List<UUID> = emptyList()): UUID?{
+    fun determineBestLocation(user: UserAccountObject, fileSize: Long, excludeList:List<UUID> = emptyList()): UUID?{
         // currently just finds the service with the most space that's not in the excludeList and returns it as long as it is more than the fileSize
         // TODO: Implement more logic such as service max file size, distributing versions of the same file to different services, etc
         val sortedSpaceAvailable = currentSpaceAvailable[user.id]?.filter {it.key !in excludeList}?.toList()?.sortedBy { (_, value) -> value}?.toMap()
@@ -78,12 +78,12 @@ class FileDistributor {
     @Scheduled(fixedDelay = delay)
     private fun checkAvailableSpacePeriodically(){
         currentSpaceAvailable.clear()
-        for (userId in userCloudServiceRepository.findDistinctUserId() ?: emptyList()) {
+        for (userId in cloudServiceUserRepository.findDistinctUserId() ?: emptyList()) {
             currentSpaceAvailable[userId] = HashMap()
             for ((key, value) in cloudServiceFactoryRepository.extensions) {
                 try {
                     val factory = value.getDeclaredConstructor().newInstance() as CloudServiceFactory
-                    if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid) != null) {
+                    if (cloudServiceUserRepository.findByUserIdAndCloudServiceUuid(userId, factory.extensionUuid) != null) {
                         val user = userRepository.findById(userId)
                         if (user.isPresent) {
                             val space = factory.cloudServiceFileIOService.availableSpace(user.get().cloudBackEncUser())
@@ -102,13 +102,13 @@ class FileDistributor {
      * Allows for requesting an update of a single cloud service provider for a single user.  This should be called
      * after sending files to update the cache.
      *
-     * @param user the UserAccount of the internal user to which the file belongs
+     * @param user the UserAccountObject of the internal user to which the file belongs
      * @param cloudServiceUuid The cloud service provider to refresh
      */
-    fun updateAvailableSpace (user: UserAccount, cloudServiceUuid: UUID){
+    fun updateAvailableSpace (user: UserAccountObject, cloudServiceUuid: UUID){
         try {
             val factory = cloudServiceFactoryRepository.extensions[cloudServiceUuid]?.getDeclaredConstructor()?.newInstance() as CloudServiceFactory?
-            if (userCloudServiceRepository.findByUserIdAndCloudServiceUuid(user.id, cloudServiceUuid) != null && factory != null) {
+            if (cloudServiceUserRepository.findByUserIdAndCloudServiceUuid(user.id, cloudServiceUuid) != null && factory != null) {
                 val userAccount = userRepository.findById(user.id)
                 if (userAccount.isPresent) {
                     val space = factory.cloudServiceFileIOService.availableSpace(user.cloudBackEncUser())

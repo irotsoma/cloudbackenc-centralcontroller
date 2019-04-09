@@ -21,7 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
@@ -30,6 +30,7 @@ import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -51,9 +52,10 @@ import java.util.*
  * @author Justin Zak
  * @property userAccountDetailsManager Autowired instance of user account manager
  * @property cloudServiceFactoryRepository Repository that holds the installed cloud service extensions.
- * @property userCloudServiceRepository JPA repository that represents the configured login information for cloud services.
+ * @property cloudServiceUserRepository JPA repository that represents the configured login information for cloud services.
  * @property messageSource Autowired MessageSource for localization strings.
  */
+@Lazy
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
 class CloudServiceLoginController {
@@ -65,7 +67,7 @@ class CloudServiceLoginController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
-    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
+    private lateinit var cloudServiceUserRepository: CloudServiceUserRepository
     @Autowired
     lateinit var messageSource: MessageSource
     @Autowired
@@ -94,9 +96,9 @@ class CloudServiceLoginController {
             logger.warn{messageSource.getMessage("centralcontroller.cloudservices.error.callback.invalid", emptyArray(), locale)}
         }
         //launch extension's login service
-        //TODO: figure out how to make this async with a timeout
+        //TODO: make this async with a timeout
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), if (user.username.isEmpty()){null}else{user.username}, userAccountDetailsManager, userCloudServiceRepository, userRepository)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), userAccountDetailsManager, userRepository, if (user.username.isEmpty()){null}else{user.username}, cloudServiceUserRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
             response = authenticationService.login(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){
@@ -130,7 +132,7 @@ class CloudServiceLoginController {
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), null, userAccountDetailsManager, userCloudServiceRepository, userRepository)
+            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), userAccountDetailsManager, userRepository, null, cloudServiceUserRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
             authenticationService.logout(user, currentUser.cloudBackEncUser())
         } catch (e:Exception ){

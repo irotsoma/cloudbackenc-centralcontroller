@@ -20,7 +20,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.UserCloudServiceRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
@@ -29,6 +29,7 @@ import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtension
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtensionList
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.*
  *
  * @author Justin Zak
  */
+@Lazy
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
 class CloudServicesListController {
@@ -57,7 +59,7 @@ class CloudServicesListController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
-    private lateinit var userCloudServiceRepository: UserCloudServiceRepository
+    private lateinit var cloudServiceUserRepository: CloudServiceUserRepository
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
@@ -83,7 +85,7 @@ class CloudServicesListController {
         if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true))) {
             return ResponseEntity(CloudServiceExtensionList(), HttpStatus.FORBIDDEN)
         }
-        val userCloudServiceList = userCloudServiceRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
+        val userCloudServiceList = cloudServiceUserRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
         val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ it.key in userCloudServiceList.filter{it.loggedIn}.map{it.cloudServiceUuid}}
 
