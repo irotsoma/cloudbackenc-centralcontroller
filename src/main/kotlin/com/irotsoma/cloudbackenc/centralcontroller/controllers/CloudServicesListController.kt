@@ -31,6 +31,7 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
@@ -71,6 +72,7 @@ class CloudServicesListController {
      * @returns An instance of CloudServiceExtensionList in a REST response
      */
     @RequestMapping("/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
         //return an empty list if the user doesn't exist
         val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()

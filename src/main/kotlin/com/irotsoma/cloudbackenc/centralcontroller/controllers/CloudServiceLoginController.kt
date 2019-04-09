@@ -33,6 +33,7 @@ import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import java.net.MalformedURLException
@@ -78,6 +79,7 @@ class CloudServiceLoginController {
      * @return CloudServiceUser.STATE value indicating the login state.
      */
     @RequestMapping("/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
@@ -119,6 +121,7 @@ class CloudServiceLoginController {
      * @return CloudServiceUser.STATE value indicating the login state.
      */
     @RequestMapping("/logout/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()

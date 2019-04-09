@@ -80,6 +80,8 @@ class UserController {
     private lateinit var apiPath: String
     @Value("\${encryptionextensions.defaultExtensionUuid}")
     private lateinit var defaultEncryptionService: String
+    @Value("\${spring.application.name}")
+    private lateinit var appName: String
     @Autowired
     private lateinit var encryptionExtensionRepository: EncryptionExtensionRepository
     @Autowired
@@ -90,7 +92,6 @@ class UserController {
     @Secured("ROLE_ADMIN")
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<Any>{
         //val authorizedUser = SecurityContextHolder.getContext().authentication
-        val locale = LocaleContextHolder.getLocale()
         //check to see if there is a duplicate user
         if (userRepository.findByUsername(user.username) != null){
             throw DuplicateUserException()
@@ -106,13 +107,15 @@ class UserController {
         //create and save new user
         val newUserAccount = UserAccount(user.username, user.password, user.email, user.enabled, user.roles)
         userRepository.saveAndFlush(newUserAccount)
+        //send email to user
+        val locale = LocaleContextHolder.getLocale()
         if (!user.email.isNullOrBlank()) {
             val mail = javaMailSender.createMimeMessage()
             try {
                 val helper = MimeMessageHelper(mail, true)
                 helper.setTo(user.email!!)
-                helper.setSubject(messageSource.getMessage("centralcontroller.user.controller.registration.email.subject", null, locale))
-                helper.setText(messageSource.getMessage("centralcontroller.user.controller.registration.email.body", arrayOf(user.username), locale))
+                helper.setSubject(messageSource.getMessage("centralcontroller.usercontroller.registration.email.subject", arrayOf(appName), locale))
+                helper.setText(messageSource.getMessage("centralcontroller.usercontroller.registration.email.body", arrayOf(user.username), locale))
                 javaMailSender.send(mail)
             } catch (e: MessagingException) {
                 e.printStackTrace() //TODO: create a custom exception here
@@ -132,6 +135,7 @@ class UserController {
      * PUT method for updating user information (Admin or affected user only)
      */
     @RequestMapping(method = [RequestMethod.PUT], produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
@@ -153,12 +157,30 @@ class UserController {
         } catch(e: UsernameNotFoundException){
             throw CloudBackEncUserNotFound()
         }
-
+        val locale = LocaleContextHolder.getLocale()
         //TODO: check format of user ID which must contain only certain characters (probably alphanumeric plus _ and -)
-        //TODO: check email address format
         //TODO: check password format based on configurable pattern in properties file
+        if (!updatedUser.email.isNullOrBlank()) {
+            if (!EmailValidator.getInstance().isValid(updatedUser.email)) {
+                throw InvalidEmailAddressException()
+            }
+        }
+        //send email to user
+        if (!updatedUser.email.isNullOrBlank()) {
+            val mail = javaMailSender.createMimeMessage()
+            try {
+                val helper = MimeMessageHelper(mail, true)
+                helper.setTo(updatedUser.email!!)
+                helper.setSubject(messageSource.getMessage("centralcontroller.usercontroller.update.email.subject", arrayOf(appName), locale))
+                helper.setText(messageSource.getMessage("centralcontroller.usercontroller.update.email.body", arrayOf(updatedUser.username, appName), locale))
+                javaMailSender.send(mail)
+            } catch (e: MessagingException) {
+                e.printStackTrace() //TODO: create a custom exception here
+            } catch (e: NoSuchMessageException){
+                e.printStackTrace() //TODO: create a custom exception here
+            }
 
-        //TODO: email user
+        }
         return ResponseEntity(updatedUser.maskedPasswordInstance(), HttpStatus.OK)
     }
 
@@ -177,6 +199,7 @@ class UserController {
      * GETs the user's information (Admin or affected user only)
      */
     @RequestMapping(value=["/{username}", "/", ""], method = [RequestMethod.GET], produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun getUser(@PathVariable(required=false) username: String?) : ResponseEntity<CloudBackEncUser>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
@@ -194,9 +217,10 @@ class UserController {
     }
 
     /**
-     * Sets up or allows a user to change their default encryption settings profile
+     * Sets up or allows a user to change their default encryption settings profile (Admin or affected user only)
      */
     @RequestMapping(value=["/{username}/encryption","/encryption"], method = [RequestMethod.POST, RequestMethod.PUT], produces = ["application/json"])
+    @Secured("ROLE_USER","ROLE_ADMIN")
     fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile): ResponseEntity<Any>{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
