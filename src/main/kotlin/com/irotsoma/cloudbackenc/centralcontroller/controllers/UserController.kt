@@ -210,35 +210,35 @@ class UserController {
         } else if (requestedUser?.username != authorizedUser.name) {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
-
-        //TODO: validate combination of information in profile
-        if(profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
+        //validate combinations of information in encryption profile
+        if (profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
             if (profile.encryptionBlockSize !in (profile.encryptionAlgorithm as EncryptionSymmetricEncryptionAlgorithms).validBlockSizes()) {
                 throw EncryptionException("Invalid block size: ${profile.encryptionBlockSize} for ${profile.encryptionAlgorithm.value}")
             }
             if ((profile.encryptionAlgorithm as EncryptionSymmetricEncryptionAlgorithms).keyAlgorithm() != (profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms)){
                 throw EncryptionException("Encryption algorithm / key algorithm mismatch: ${profile.encryptionAlgorithm.value} / ${profile.encryptionKeyAlgorithm.value}")
             }
-        } else {
-            throw EncryptionException("Only symmetric encryption is currently supported.")
+            if (profile.encryptionKeySize !in (profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms).validKeyLengths()){
+                throw EncryptionException("Invalid key size for key algorithm ${profile.encryptionKeyAlgorithm.value}: ${profile.encryptionKeySize}")
+            }
+        } else if (profile.encryptionType == EncryptionAlgorithmTypes.ASYMMETRIC) {
+            if ((profile.encryptionAlgorithm as EncryptionAsymmetricEncryptionAlgorithms).keyAlgorithm() != (profile.encryptionKeyAlgorithm as EncryptionAsymmetricKeyAlgorithms)) {
+                throw EncryptionException("Encryption algorithm / key algorithm mismatch: ${profile.encryptionAlgorithm.value} / ${profile.encryptionKeyAlgorithm.value}")
+            }
+        } else  {
+            throw EncryptionException ("Encryption type is not supported: ${profile.encryptionType.value}")
         }
-
-
-
-
 
         val encryptionUuid = profile.encryptionServiceUuid?: UUID.fromString(defaultEncryptionService)
         val encryptionFactory = (encryptionExtensionRepository.extensions[encryptionUuid])?.getDeclaredConstructor()?.newInstance() as EncryptionFactory? ?: encryptionExtensionRepository.extensions[UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid)]?.getDeclaredConstructor()?.newInstance() as EncryptionFactory? ?: throw EncryptionException("Unable to create the requested or the default encryption factory.")
         var secretKey: SecretKey? = null
         var keyPair: KeyPair? = null
-        if (profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
-            secretKey = encryptionFactory.encryptionKeyService.generateSymmetricKey(profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms,
+        when {
+            profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC -> secretKey = encryptionFactory.encryptionKeyService.generateSymmetricKey(profile.encryptionKeyAlgorithm as EncryptionSymmetricKeyAlgorithms,
                     profile.encryptionKeySize?:(profile.encryptionAlgorithm as EncryptionSymmetricKeyAlgorithms).validKeyLengths().last())
-        } else if (profile.encryptionType == EncryptionAlgorithmTypes.ASYMMETRIC) {
-            keyPair = encryptionFactory.encryptionKeyService.generateAsymmetricKeys(profile.encryptionKeyAlgorithm as EncryptionAsymmetricKeyAlgorithms,
+            profile.encryptionType == EncryptionAlgorithmTypes.ASYMMETRIC -> keyPair = encryptionFactory.encryptionKeyService.generateAsymmetricKeys(profile.encryptionKeyAlgorithm as EncryptionAsymmetricKeyAlgorithms,
                     profile.encryptionKeySize ?: (profile.encryptionAlgorithm as EncryptionAsymmetricKeyAlgorithms).validKeyLengths().last())
-        } else {
-            throw EncryptionException("Only symmetric encryption is currently supported.")
+            else -> throw EncryptionException("Only symmetric encryption is currently supported.")
         }
 
         val encryptionProfileObject = EncryptionProfileObject(encryptionUuid ,
@@ -247,7 +247,7 @@ class UserController {
                 profile.encryptionKeyAlgorithm.value,
                 profile.encryptionBlockSize,
                 secretKey?.encoded ?: keyPair?.private?.encoded ?:
-                    throw EncryptionException("\"Error generating keys. Null returned by key generator. Algorithm ${profile.encryptionKeyAlgorithm.value}; Encryption service UUID: $encryptionUuid\""),
+                    throw EncryptionException("Error generating keys. Null returned by key generator. Algorithm ${profile.encryptionKeyAlgorithm.value}; Encryption service UUID: $encryptionUuid"),
                 keyPair?.public?.encoded)
         val encryptionProfileId = encryptionProfileRepository.saveAndFlush(encryptionProfileObject)
         requestedUser!!.defaultEncryptionProfile = encryptionProfileId
