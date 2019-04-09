@@ -41,7 +41,7 @@ import java.util.*
  */
 @Component
 class TokenHandler {
-
+    //TODO: change this to use public/private keypairs instead of a password to allow for parsing credentials from tokens.
     /**
      * The encoding secret pulled from application settings and Base64 encoded.
      */
