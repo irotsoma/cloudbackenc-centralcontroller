@@ -22,6 +22,8 @@ import com.irotsoma.cloudbackenc.common.AuthenticationToken
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtension
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtensionList
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
+import io.jsonwebtoken.Jwts
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
@@ -30,6 +32,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import org.springframework.test.context.junit4.SpringRunner
+import java.security.KeyStore
 
 /**
  * Integration tests for cloud services list controllers.  Assumes Google Drive extension is installed as noted in comments.
@@ -102,6 +105,19 @@ class CloudServicesControllerIntegrationTests {
         val testValue2 = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/auth",HttpMethod.GET, httpEntity, AuthenticationToken::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
         assert(testValue2.hasBody())
+        val keyStore: KeyStore
+        try {
+            keyStore = KeyStore.getInstance("PKCS12")
+            keyStore?.load(javaClass.classLoader.getResourceAsStream("security/keyStorePublic.p12"), "insecurepassword".toCharArray())
+        } catch (e: Exception){
+            throw EncryptionException("Unable to load JWT keystore.", e)
+        }
+        val cert = keyStore.getCertificate("cloudbackenccert")
+        val roles = Jwts.parser()
+                .setSigningKey(cert.publicKey)
+                .parseClaimsJws(testValue2.body?.token)
+                .body["roles"] as List<*>? ?: emptyList<String>()
+        assert(roles.contains("ROLE_TEST"))
     }
 
     //below is only valid when google drive plugin is installed in extensions folder  (make sure compatible version is included in test resource folder)

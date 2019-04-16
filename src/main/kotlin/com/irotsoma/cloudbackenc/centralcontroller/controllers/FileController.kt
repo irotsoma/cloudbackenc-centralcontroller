@@ -238,7 +238,7 @@ class FileController {
             ivParameterSpec =  IvParameterSpec(ivByteArray)
         }
 
-        encryptionFactory.encryptionFileService.encrypt(localFile.inputStream(), encryptedFile.outputStream(), encryptionKey, encryptionAlgorithm, ivParameterSpec, secureRandom)
+        encryptionFactory.encryptionStreamService.encrypt(localFile.inputStream(), encryptedFile.outputStream(), encryptionKey, encryptionAlgorithm, ivParameterSpec, secureRandom)
 
         val encryptedHash = hashFile(encryptedFile)
 

@@ -24,14 +24,19 @@ import com.irotsoma.cloudbackenc.centralcontroller.data.TokenObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.TokenRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Component
+import java.io.FileInputStream
+import java.security.KeyStore
+import java.security.PrivateKey
 import java.util.*
+import javax.annotation.PostConstruct
 
 
 /**
@@ -39,29 +44,36 @@ import java.util.*
  *
  * @author Justin Zak
  */
+@Lazy
 @Component
 class TokenHandler {
-    //TODO: change this to use public/private keypairs instead of a password to allow for parsing credentials from tokens.
-    /**
-     * The encoding secret pulled from application settings and Base64 encoded.
-     */
-    @Value("\${jwt.secret}")
-    private var secret: String? = null
-        set(value) {
-            Base64.getEncoder().encodeToString(value?.toByteArray())
-        }
-    /**
-     * Expiration time in milliseconds for a token pulled from application settings or defaulted to 1 hour
-     */
-    @Value("\${jwt.expiration}")
-    private var expirationTime: Long = 3600000L
-    /** autowired jpa user repository */
+    //The encoding keys info pulled from application settings
     @Autowired
-    lateinit var userRepository: UserAccountRepository
+    private lateinit var jwtSettings: JwtSettings
+    @Autowired
+    private lateinit var userRepository: UserAccountRepository
     @Autowired
     private lateinit var userService: UserAccountDetailsManager
     @Autowired
     private lateinit var tokenRepository: TokenRepository
+    private var keyStore: KeyStore? = null
+    private var privateKey: PrivateKey? = null
+
+    @PostConstruct
+    private fun getKeyStore(){
+        try {
+            keyStore = KeyStore.getInstance(jwtSettings.keyStoreType)
+            keyStore?.load(FileInputStream(jwtSettings.keyStore), jwtSettings.keyStorePassword?.toCharArray())
+        } catch (e: Exception){
+            throw EncryptionException("Unable to load JWT keystore.", e)
+        }
+        if (keyStore?.containsAlias(jwtSettings.keyAlias) != true){
+            throw EncryptionException("Key alias does not exist in JWT keystore.")
+        }
+        privateKey = keyStore!!.getKey(jwtSettings.keyAlias,jwtSettings.keyPassword?.toCharArray()) as PrivateKey
+
+    }
+
     /**
      * Attempts to parse the User information from a token.
      *
@@ -70,7 +82,7 @@ class TokenHandler {
      */
     fun parseUserFromToken(token: String): User? {
         val username = Jwts.parser()
-                .setSigningKey(secret)
+                .setSigningKey(privateKey)
                 .parseClaimsJws(token)
                 .body
                 .subject ?: return null
@@ -99,7 +111,7 @@ class TokenHandler {
     fun parseUuidFromToken(token: String): UUID? {
         val id =try{
             Jwts.parser()
-                    .setSigningKey(secret)
+                    .setSigningKey(privateKey)
                     .parseClaimsJws(token)
                     .body
                     .id
@@ -122,7 +134,7 @@ class TokenHandler {
      */
     fun isTokenExpired(token: String):Boolean{
         val tokenBody = Jwts.parser()
-                .setSigningKey(secret)
+                .setSigningKey(privateKey)
                 .parseClaimsJws(token)
                 .body
         val expiration: Date? = tokenBody.expiration
@@ -141,16 +153,18 @@ class TokenHandler {
         }
         val now = Date()
         val id = UUID.randomUUID()
-        val expiration = Date(now.time + expirationTime)
+        val expiration = Date(now.time + (jwtSettings.expiration ?: 3600))
         //add token to DB
         val newToken = TokenObject(id, userRepository.findByUsername(user.username)!!.id, expiration, true)
         tokenRepository.saveAndFlush(newToken)
+
         return AuthenticationToken(Jwts.builder()
+                .claim("roles", user.authorities.map{ it.toString() })
                 .setId(id.toString())
                 .setSubject(user.username)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(SignatureAlgorithm.values().find { it.jcaName == jwtSettings.algorithm }, privateKey)
                 .compact(), expiration)
     }
     /**
@@ -161,7 +175,7 @@ class TokenHandler {
      */
     fun isTokenValid(token: String): Boolean{
         val id = Jwts.parser()
-                .setSigningKey(secret)
+                .setSigningKey(privateKey)
                 .parseClaimsJws(token)
                 .body
                 .id

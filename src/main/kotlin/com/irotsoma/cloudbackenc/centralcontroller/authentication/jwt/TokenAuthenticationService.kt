@@ -20,7 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -31,11 +31,12 @@ import javax.servlet.http.HttpServletRequest
  *
  * @author Justin Zak
  */
+@Lazy
 @Component
 class TokenAuthenticationService {
 
-    @Value("\${jwt.disabled}")
-    private var isDisabled: Boolean? = null
+    @Autowired
+    private lateinit var jwtSettings: JwtSettings
 
     @Autowired
     private lateinit var tokenHandler: TokenHandler
@@ -47,7 +48,7 @@ class TokenAuthenticationService {
      * @return A Spring Authentication object containing the user information or null if the token is invalid or expired or the user is invalid
      */
     fun getAuthentication(request: HttpServletRequest): Authentication? {
-        if (isDisabled == true){
+        if (jwtSettings.disabled){
             //if the jwt functionality is disabled in properties just skip this
             return null
         } else {
