@@ -18,6 +18,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
+import org.hibernate.annotations.Where
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**
@@ -32,6 +33,7 @@ interface UserAccountRepository : JpaRepository<UserAccountObject, Long> {
      * @param username The username of the user to retrieve
      * @returns An instance of [UserAccountObject] representing the database record or null if the username was not found
      */
+    @Where(clause="state = 'active'")
     fun findByUsername(username: String): UserAccountObject?
     /**
      * retrieve a record by the user's email address
@@ -39,6 +41,7 @@ interface UserAccountRepository : JpaRepository<UserAccountObject, Long> {
      * @param email The email address of the user to retrieve
      * @returns An instance of [UserAccountObject] representing the database record or null if the email address was not found
      */
+    @Where(clause="state = 'active'")
     fun findByEmail (email: String): UserAccountObject?
     /**
      * retrieve a record by a specific default encryption profile.

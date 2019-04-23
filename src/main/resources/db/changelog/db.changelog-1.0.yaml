@@ -85,7 +85,7 @@ databaseChangeLog:
                   value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
               - column:
                   name: state
-                  value: 'active'
+                  value: "ACTIVE"
         - insert:
             tableName: user_roles
             columns:
@@ -124,7 +124,7 @@ databaseChangeLog:
                   value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
               - column:
                   name: state
-                  value: 'active'
+                  value: "ACTIVE"
         - insert:
             tableName: user_roles
             columns:

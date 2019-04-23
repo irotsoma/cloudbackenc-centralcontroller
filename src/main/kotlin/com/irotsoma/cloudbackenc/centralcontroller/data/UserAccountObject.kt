@@ -46,12 +46,12 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "user_account")
-@SQLDelete(sql = "UPDATE user_account SET state = ‘deleted’ WHERE id = ?", check = ResultCheckStyle.COUNT)
-@Where(clause = "state <> 'deleted'")
+@SQLDelete(sql = "UPDATE user_account SET state = ‘DELETED’ WHERE id = ?", check = ResultCheckStyle.COUNT)
+@Where(clause = "state != 'DELETED'")
 class UserAccountObject(@Column(name = "username", nullable = false, updatable = false) val username: String,
                         password: String,
                         @Column(name = "email", nullable = true) var email: String?,
-                        @Column(name = "state", nullable = false) var state: UserAccountState,
+                        @Column(name = "state", nullable = false) @Enumerated(EnumType.STRING) var state: UserAccountState,
                         roles: List<CloudBackEncRoles>) {
     /** kotlin-logging implementation */
     companion object : KLogging() {
