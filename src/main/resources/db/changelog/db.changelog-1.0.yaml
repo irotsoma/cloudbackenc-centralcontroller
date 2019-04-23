@@ -83,6 +83,9 @@ databaseChangeLog:
               - column:
                   name: password
                   value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
+              - column:
+                  name: state
+                  value: 'active'
         - insert:
             tableName: user_roles
             columns:
@@ -119,6 +122,9 @@ databaseChangeLog:
               - column:
                   name: password
                   value: '$2a$10$QAvWmPlLkw7s0G4tRj5aL.jPrPRmziPJg9Nw7FA/rGO.dPvqxJlI.'
+              - column:
+                  name: state
+                  value: 'active'
         - insert:
             tableName: user_roles
             columns:
