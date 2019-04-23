@@ -20,6 +20,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.authentication
 
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
+import com.irotsoma.cloudbackenc.common.UserAccountState
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
@@ -50,7 +51,7 @@ class UserAccountDetailsManager : UserDetailsService {
      */
     override fun loadUserByUsername(username: String): UserDetails {
         val userAccount = userRepository.findByUsername(username) ?: throw UsernameNotFoundException(" '$username'")
-        return User(userAccount.username, userAccount.password, userAccount.enabled, true,true,true, userAccount.roles?.let {getRoles(it)})
+        return User(userAccount.username, userAccount.password, userAccount.state == UserAccountState.ACTIVE, true,true,true, userAccount.roles?.let {getRoles(it)})
     }
 
     /**

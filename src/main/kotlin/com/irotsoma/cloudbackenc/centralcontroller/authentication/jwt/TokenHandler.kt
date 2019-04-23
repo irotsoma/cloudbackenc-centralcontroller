@@ -153,7 +153,8 @@ class TokenHandler {
         }
         val now = Date()
         val id = UUID.randomUUID()
-        val expiration = Date(now.time + (jwtSettings.expiration ?: 3600))
+        //set the expiration, default to 1 hour from now
+        val expiration = Date(now.time + ((jwtSettings.expiration ?: 3600) * 1000))
         //add token to DB
         val newToken = TokenObject(id, userRepository.findByUsername(user.username)!!.id, expiration, true)
         tokenRepository.saveAndFlush(newToken)

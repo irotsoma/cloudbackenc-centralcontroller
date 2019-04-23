@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration
  * @property keyAlias The alias for the private key for creating JWT tokens
  * @property keyPassword Password for the key as defined by keyAlias
  * @property algorithm The algorithm to use for creating JWT tokens
- * @property expiration Defines the default expiration time for a JWT token
+ * @property expiration Defines the default expiration period in seconds for a JWT token
  * @property disabled Set to true to disable JWT tokens completely allowing only login through account credentials.
  *
  * @author Justin Zak

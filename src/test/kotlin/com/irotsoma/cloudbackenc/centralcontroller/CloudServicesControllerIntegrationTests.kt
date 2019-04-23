@@ -51,7 +51,7 @@ class CloudServicesControllerIntegrationTests {
     private var apiV1Path: String = ""
     var protocol: String = "http"
 
-    //test that listing cloud services returns an HttpStatus.OK
+    //test that rest endpoint for listing cloud services returns an HttpStatus.OK and google drive is included in the list of services
     @Test
     fun testGetCloudServicesList(){
         val restTemplate: TestRestTemplate
@@ -65,7 +65,7 @@ class CloudServicesControllerIntegrationTests {
         }
         val testValue = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services", CloudServiceExtensionList()::class.java)
         assert(testValue.statusCode==HttpStatus.OK)
-        val expected =CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
+        val expected = CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
         //below is only valid when google drive plugin is installed in test extensions folder
         assert(testValue.body!!.contains(expected))
 
@@ -75,6 +75,7 @@ class CloudServicesControllerIntegrationTests {
         assert(testValue2.body!!.contains(expected))
     }
 
+    //tests user token generation and parsing
     @Test
     fun testTokenGeneration(){
         var restTemplate: TestRestTemplate
@@ -121,8 +122,9 @@ class CloudServicesControllerIntegrationTests {
     }
 
     //below is only valid when google drive plugin is installed in extensions folder  (make sure compatible version is included in test resource folder)
+    //doesn't actually log in to google, just tests plugin integration and rest endpoint for login
     @Test
-    fun testLoginGoogleDrive(){
+    fun testGoogleDrivePluginIntegration(){
         val restTemplate: TestRestTemplate
         if (useSSL!=null && useSSL!="") {
             protocol= "https"

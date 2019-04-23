@@ -32,7 +32,6 @@ databaseChangeLog:
                   name: username
                   type: nvarchar(1023)
                   constraints:
-                    unique: true
                     nullable: false
               - column:
                   name: password
@@ -43,9 +42,8 @@ databaseChangeLog:
                   name: email
                   type: nvarchar(1023)
               - column:
-                  name: enabled
-                  type: boolean
-                  defaultValueBoolean: true
+                  name: state
+                  type: nvarchar(1023)
                   constraints:
                     nullable: false
               - column:

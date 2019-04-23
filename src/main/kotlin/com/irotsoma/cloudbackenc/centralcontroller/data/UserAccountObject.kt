@@ -22,7 +22,11 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
+import com.irotsoma.cloudbackenc.common.UserAccountState
 import mu.KLogging
+import org.hibernate.annotations.ResultCheckStyle
+import org.hibernate.annotations.SQLDelete
+import org.hibernate.annotations.Where
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import javax.persistence.*
@@ -35,17 +39,19 @@ import javax.persistence.*
  * @property username Username of the user.
  * @property password User password encoded using BCrypt.
  * @property email (Optional) email address for the user to receive notifications.
- * @property enabled Indicates if a user is enabled in the system.
+ * @property state Indicates if a user is enabled in the system.
  * @property roleList A list of roles for the user.
  * @property roles roleList translated into CloudBackEncRoles
  * @property defaultEncryptionProfile The encryption settings preferred by this user.
  */
 @Entity
 @Table(name = "user_account")
+@SQLDelete(sql = "UPDATE user_account SET state = ‘deleted’ WHERE id = ?", check = ResultCheckStyle.COUNT)
+@Where(clause = "state <> 'deleted'")
 class UserAccountObject(@Column(name = "username", nullable = false, updatable = false) val username: String,
                         password: String,
                         @Column(name = "email", nullable = true) var email: String?,
-                        @Column(name = "enabled", nullable = false) var enabled: Boolean,
+                        @Column(name = "state", nullable = false) var state: UserAccountState,
                         roles: List<CloudBackEncRoles>) {
     /** kotlin-logging implementation */
     companion object : KLogging() {
@@ -89,6 +95,6 @@ class UserAccountObject(@Column(name = "username", nullable = false, updatable =
      * Convenience method that returns a CloudBackEncUser object with the password masked
      */
     fun cloudBackEncUser(): CloudBackEncUser{
-        return CloudBackEncUser(username, CloudBackEncUser.PASSWORD_MASKED, email, enabled, roles?: emptyList())
+        return CloudBackEncUser(username, CloudBackEncUser.PASSWORD_MASKED, email, state, roles?: emptyList())
     }
 }
