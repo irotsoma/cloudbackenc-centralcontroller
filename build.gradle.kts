@@ -16,6 +16,9 @@
  *
  */
 
+import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 group = "com.irotsoma.cloudbackenc"
 version = "0.4-SNAPSHOT"
 
