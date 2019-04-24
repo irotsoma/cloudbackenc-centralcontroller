@@ -17,10 +17,12 @@
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 /**
  * JPA repository for encryption configuration profiles that will be linked with files sent to a cloud service
  *
  * @author Justin Zak
  */
+@Repository
 interface EncryptionProfileRepository: JpaRepository<EncryptionProfileObject,Long>

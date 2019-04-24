@@ -20,6 +20,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 import java.util.*
 
 /**
@@ -27,6 +28,7 @@ import java.util.*
  *
  * @author Justin Zak
  */
+@Repository
 interface TokenRepository: JpaRepository<TokenObject, UUID> {
     /**
      * Retrieve a token by its UUID

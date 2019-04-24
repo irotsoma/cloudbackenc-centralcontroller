@@ -20,8 +20,8 @@
 package com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
+
 /**
 *
 * Configuration object for encryption extensions.
@@ -39,7 +39,6 @@ import org.springframework.context.annotation.Configuration
  * @author Justin Zak
 */
 @Configuration
-@EnableConfigurationProperties
 @ConfigurationProperties("jwt")
 class JwtSettings {
     lateinit var keyStore: String

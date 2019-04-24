@@ -28,7 +28,7 @@ import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
 
 /**
@@ -40,7 +40,7 @@ import java.util.*
  * @property userAccountDetailsManager Autowired instance of user account manager
  * @property currentSpaceAvailable A map indexed by user ID containing a map of available space indexed by cloud service extension UUIDs
 */
-@Component
+@Service
 class FileDistributor {
     /** kotlin-logging implementation*/
     companion object: KLogging(){

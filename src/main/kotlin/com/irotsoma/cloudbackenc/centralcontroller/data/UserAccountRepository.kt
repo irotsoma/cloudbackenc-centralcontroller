@@ -20,12 +20,14 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.hibernate.annotations.Where
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 /**
  * JPA repository object for storing user accounts
  *
  * @author Justin Zak
  */
+@Repository
 interface UserAccountRepository : JpaRepository<UserAccountObject, Long> {
     /**
      * retrieve a record by the username of the user

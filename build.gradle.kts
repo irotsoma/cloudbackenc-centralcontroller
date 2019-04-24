@@ -16,9 +16,6 @@
  *
  */
 
-import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 group = "com.irotsoma.cloudbackenc"
 version = "0.4-SNAPSHOT"
 
@@ -146,7 +143,7 @@ license {
     ignoreFailures = true
     mapping("kt", "JAVADOC_STYLE")
     mapping("fxml", "XML_STYLE")
-    excludes(arrayListOf<String>("**/*.json", "**/LICENSE", "**/*license*.html", "**/*license*.xml", "**/COPYING", "**/COPYING.LESSER", "**/*.jar", "**/*.dat"))
+    excludes(arrayListOf<String>("**/*.json", "**/LICENSE", "**/*license*.html", "**/*license*.xml", "**/COPYING", "**/COPYING.LESSER", "**/*.jar", "**/*.dat", "**/*.p12"))
 }
 tasks.register<Copy>("copyLicenseReports") {
     from(file("$buildDir/reports/license/"))

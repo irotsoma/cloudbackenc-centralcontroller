@@ -21,6 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.stereotype.Repository
 import java.util.*
 
 /**
@@ -28,7 +29,7 @@ import java.util.*
  *
  * @author Justin Zak
  */
-
+@Repository
 interface CloudServiceUserRepository : JpaRepository<CloudServiceUserObject, Long> {
     /**
      * retrieve all records for an internal user

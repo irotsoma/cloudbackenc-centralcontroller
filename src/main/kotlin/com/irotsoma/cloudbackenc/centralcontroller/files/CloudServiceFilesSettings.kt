@@ -20,7 +20,6 @@
 package com.irotsoma.cloudbackenc.centralcontroller.files
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 /**
@@ -30,7 +29,6 @@ import org.springframework.context.annotation.Configuration
  * @property maxFileVersions The maximum number of versions of a tracked file to keep.
  */
 @Configuration
-@EnableConfigurationProperties
 @ConfigurationProperties("cloudservicefiles")
 class CloudServiceFilesSettings{
     var maxFileVersions: Int = 0

@@ -22,7 +22,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.data.utilities
 import com.irotsoma.cloudbackenc.centralcontroller.data.TokenRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
 
 /**
@@ -31,7 +31,7 @@ import java.util.*
  * @property tokenRepository Autowired instance of JPA repository for token metadata
  * @author Justin Zak
  */
-@Component
+@Service
 class TokenCleanup {
 
     @Autowired

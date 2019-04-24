@@ -20,12 +20,14 @@
 package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 /**
  * JPA repository for cloud service file information.
  *
  * @author Justin Zak
  */
+@Repository
 interface CloudServiceFileRepository : JpaRepository<CloudServiceFileObject, Long> {
     /**
      * retrieve a record by a specific encryption profile.

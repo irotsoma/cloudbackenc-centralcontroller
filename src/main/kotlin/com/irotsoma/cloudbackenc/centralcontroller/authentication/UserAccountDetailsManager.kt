@@ -28,7 +28,7 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
 /**
  * User Account Details Service with Autowired Repositories
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
  *
  * @author Justin Zak
  */
-@Component
+@Service
 class UserAccountDetailsManager : UserDetailsService {
     /** autowired jpa user repository */
     @Autowired

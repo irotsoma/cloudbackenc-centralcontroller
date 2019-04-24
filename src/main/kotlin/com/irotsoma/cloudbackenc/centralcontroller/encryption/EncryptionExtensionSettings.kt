@@ -18,7 +18,6 @@ package com.irotsoma.cloudbackenc.centralcontroller.encryption
 
 import com.irotsoma.cloudbackenc.common.ExtensionSettings
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 /**
@@ -28,6 +27,5 @@ import org.springframework.context.annotation.Configuration
  * Loads application.properties settings that start with "encryptionextensions".
  */
 @Configuration
-@EnableConfigurationProperties
 @ConfigurationProperties("encryptionextensions")
 class EncryptionExtensionSettings : ExtensionSettings()
