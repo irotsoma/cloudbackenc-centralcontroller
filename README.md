@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1d9c49e1042f44bda33cf6ace6046c5b)](https://app.codacy.com/app/irotsoma/cloudbackenc-centralcontroller?utm_source=github.com&utm_medium=referral&utm_content=irotsoma/cloudbackenc-centralcontroller&utm_campaign=Badge_Grade_Dashboard)
 # cloudbackenc-centralcontroller [![CircleCI](https://circleci.com/gh/irotsoma/cloudbackenc-centralcontroller/tree/master.svg?style=svg)](https://circleci.com/gh/irotsoma/cloudbackenc-centralcontroller/tree/master)
 
 Central controller service for CloudBackEnc.
