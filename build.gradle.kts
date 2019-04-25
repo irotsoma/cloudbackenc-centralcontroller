@@ -127,9 +127,6 @@ dependencies {
     implementation( "com.sun.mail:jakarta.mail:$javaMailVersion")
     //test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-
 }
 
 sourceSets["main"].resources.srcDirs.add(file("$buildDir/license-reports/"))

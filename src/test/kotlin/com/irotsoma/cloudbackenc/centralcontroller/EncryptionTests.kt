@@ -18,6 +18,7 @@ package com.irotsoma.cloudbackenc.centralcontroller
 
 import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionFactory
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricKeyAlgorithms
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,7 @@ class EncryptionTests {
     lateinit var encryptionExtensionRepository:EncryptionExtensionRepository
 
     /**
-     * Tests if the encryption repository can load its default extension properly
+     * Tests if the encryption repository can load its default extension properly and create some keys
      */
     @Test
     fun testEncryptionRepository(){
@@ -44,5 +45,7 @@ class EncryptionTests {
         val encryptionFactory = encryptionFactoryClass.getDeclaredConstructor().newInstance()
         assert(encryptionFactory is EncryptionFactory)
         assert(encryptionFactory.extensionUuid == UUID.fromString(encryptionExtensionRepository.encryptionExtensionSettings.defaultExtensionUuid))
+        val key = (encryptionFactory as EncryptionFactory).encryptionKeyService.generateSymmetricKey(EncryptionSymmetricKeyAlgorithms.AES,128)
+        assert(key?.algorithm == "AES")
     }
 }

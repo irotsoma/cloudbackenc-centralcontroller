@@ -24,23 +24,25 @@ import com.irotsoma.cloudbackenc.common.AuthenticationToken
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import com.irotsoma.cloudbackenc.common.UserAccountState
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
-import org.junit.jupiter.api.Order
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestMethodOrder
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionAlgorithmTypes
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionProfile
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricEncryptionAlgorithms
+import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricKeyAlgorithms
+import org.junit.Test
+import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.client.HttpClientErrorException
 import java.io.File
 import java.util.*
 
+@RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestMethodOrder(OrderAnnotation::class)
 class E2ETests {
     @LocalServerPort
     private var port: Int = 0
@@ -57,15 +59,11 @@ class E2ETests {
     val e2eTestSecretsFile = File("../secret/e2eTestSecrets.properties")
     val e2eTestSecretsProperties = Properties()
 
-    @BeforeAll
-    fun loadSecrets(){
-        assert(e2eTestSecretsFile.exists()) { "e2eTestSecretsFile is missing" }
-        e2eTestSecretsProperties.load(e2eTestSecretsFile.inputStream())
-    }
 
     @Test
-    @Order(1)
-    fun createUser(){
+    fun e2eUser(){
+        assert(e2eTestSecretsFile.exists()) { "e2eTestSecretsFile is missing" }
+        e2eTestSecretsProperties.load(e2eTestSecretsFile.inputStream())
         setupRestTemplate(e2eTestSecretsProperties.getProperty("admin.username"), e2eTestSecretsProperties.getProperty("admin.password"))
         user = CloudBackEncUser(e2eTestSecretsProperties.getProperty("user.username"), e2eTestSecretsProperties.getProperty("user.password"), null,UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
         try {
@@ -84,16 +82,12 @@ class E2ETests {
         val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
         assert(userTokenResponse.body != null) { "User login failed while getting auth token." }
         userToken = userTokenResponse.body
-    }
 
+        val encryptionProfile = EncryptionProfile(EncryptionAlgorithmTypes.SYMMETRIC, EncryptionSymmetricEncryptionAlgorithms.AES, EncryptionSymmetricKeyAlgorithms.AES,128,128, null)
+        setupRestTemplate(user!!.username,user!!.password)
+        val responseEntity = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users/encryption",encryptionProfile,Any::class.java)
+        assert(responseEntity.statusCode == HttpStatus.CREATED)
 
-
-
-
-
-    @Test
-    @Order(Integer.MAX_VALUE)
-    fun deleteUser() {
         setupRestTemplate(e2eTestSecretsProperties.getProperty("admin.username"), e2eTestSecretsProperties.getProperty("admin.password"))
         restTemplate.delete("$protocol://localhost:$port$apiV1Path/users/${user!!.username}")
     }
