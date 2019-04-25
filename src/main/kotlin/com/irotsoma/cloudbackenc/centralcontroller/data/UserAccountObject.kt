@@ -46,7 +46,7 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "user_account")
-@SQLDelete(sql = "UPDATE user_account SET state = ‘DELETED’ WHERE id = ?", check = ResultCheckStyle.COUNT)
+@SQLDelete(sql = "UPDATE user_account SET state = 'DELETED' WHERE id = ?", check = ResultCheckStyle.COUNT)
 @Where(clause = "state != 'DELETED'")
 class UserAccountObject(@Column(name = "username", nullable = false, updatable = false) val username: String,
                         password: String,
@@ -60,6 +60,7 @@ class UserAccountObject(@Column(name = "username", nullable = false, updatable =
     }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, unique = true)
     var id: Long = -1
 
     @JsonIgnore
