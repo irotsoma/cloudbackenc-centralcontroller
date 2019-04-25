@@ -279,6 +279,6 @@ class UserController {
         requestedUser!!.defaultEncryptionProfile = encryptionProfileId
         userRepository.saveAndFlush(requestedUser)
 
-        return ResponseEntity(HttpStatus.OK)
+        return ResponseEntity(HttpStatus.CREATED)
     }
 }
