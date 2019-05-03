@@ -38,8 +38,6 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.client.HttpClientErrorException
-import java.io.File
-import java.util.*
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -51,21 +49,45 @@ class E2ETests {
     @Value("\${centralcontroller.api.v1.path}")
     private var apiV1Path: String = ""
     var protocol: String = "http"
-    var restTemplate: TestRestTemplate = TestRestTemplate("test", "insecurepassword")
+    var restTemplate: TestRestTemplate = TestRestTemplate()
     var user:CloudBackEncUser? = null
     var userToken: AuthenticationToken? = null
 
-    //requires a file that contains the logins and any other required information for performing e2e tests with real accounts
-    val e2eTestSecretsFile = File("../secret/e2eTestSecrets.properties")
-    val e2eTestSecretsProperties = Properties()
+    val userUsername = "e2etestuser"
+    val userPassword = "E2etestuser!"
 
+    val adminUsername = "admin"
+    val adminPassword = "insecurepassword"
 
     @Test
     fun e2eUser(){
-        assert(e2eTestSecretsFile.exists()) { "e2eTestSecretsFile is missing" }
-        e2eTestSecretsProperties.load(e2eTestSecretsFile.inputStream())
-        setupRestTemplate(e2eTestSecretsProperties.getProperty("admin.username"), e2eTestSecretsProperties.getProperty("admin.password"))
-        user = CloudBackEncUser(e2eTestSecretsProperties.getProperty("user.username"), e2eTestSecretsProperties.getProperty("user.password"), null,UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+
+        createUser()
+
+        setupRestTemplate(user!!.username, user!!.password)
+        val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
+        assert(userTokenResponse.body != null) { "User login failed while getting auth token." }
+        userToken = userTokenResponse.body
+
+        createEncryptionProfile()
+
+        //TODO: add more tests
+
+        setupRestTemplate(adminUsername, adminPassword)
+        restTemplate.delete("$protocol://localhost:$port$apiV1Path/users/${user!!.username}")
+    }
+
+    fun createEncryptionProfile(){
+        val encryptionProfile = EncryptionProfile(EncryptionAlgorithmTypes.SYMMETRIC, EncryptionSymmetricEncryptionAlgorithms.AES, EncryptionSymmetricKeyAlgorithms.AES,128,128, null)
+        setupRestTemplate(user!!.username,user!!.password)
+        val responseEntity = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users/encryption",encryptionProfile,Any::class.java)
+        assert(responseEntity.statusCode == HttpStatus.CREATED)
+    }
+
+
+    fun createUser(){
+        setupRestTemplate(adminUsername, adminPassword)
+        user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
         try {
             val result = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), CloudBackEncUser::class.java)
             assert(result.statusCode == HttpStatus.CREATED) {"Error creating new user: ${result.statusCode.reasonPhrase}"}
@@ -76,20 +98,8 @@ class E2ETests {
                 throw e
             }
         } catch (e: DuplicateUserException){
-            assert(false) {"Username in e2eTestSecretsProperties file already exists."}
+            assert(false) {"Username in e2e settings file already exists."}
         }
-        setupRestTemplate(user!!.username, user!!.password)
-        val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
-        assert(userTokenResponse.body != null) { "User login failed while getting auth token." }
-        userToken = userTokenResponse.body
-
-        val encryptionProfile = EncryptionProfile(EncryptionAlgorithmTypes.SYMMETRIC, EncryptionSymmetricEncryptionAlgorithms.AES, EncryptionSymmetricKeyAlgorithms.AES,128,128, null)
-        setupRestTemplate(user!!.username,user!!.password)
-        val responseEntity = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users/encryption",encryptionProfile,Any::class.java)
-        assert(responseEntity.statusCode == HttpStatus.CREATED)
-
-        setupRestTemplate(e2eTestSecretsProperties.getProperty("admin.username"), e2eTestSecretsProperties.getProperty("admin.password"))
-        restTemplate.delete("$protocol://localhost:$port$apiV1Path/users/${user!!.username}")
     }
 
 
