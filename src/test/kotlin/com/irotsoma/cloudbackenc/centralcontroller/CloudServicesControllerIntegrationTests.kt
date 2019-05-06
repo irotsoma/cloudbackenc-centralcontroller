@@ -41,7 +41,7 @@ import java.security.KeyStore
  */
 
 @RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CloudServicesControllerIntegrationTests {
     @LocalServerPort
     private var port: Int = 0

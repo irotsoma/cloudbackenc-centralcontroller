@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.client.HttpClientErrorException
 
 @RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 class E2ETests {
     @LocalServerPort
     private var port: Int = 0
