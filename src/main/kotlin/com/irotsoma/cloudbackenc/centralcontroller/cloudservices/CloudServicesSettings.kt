@@ -31,4 +31,6 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @ConfigurationProperties("cloudservices")
-class CloudServicesSettings : ExtensionSettings()
+class CloudServicesSettings : ExtensionSettings(){
+    var cloudServicesSecrets: Map<String,CloudServiceSecret> = emptyMap()
+}

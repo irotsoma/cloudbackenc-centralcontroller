@@ -87,7 +87,7 @@ class CloudServicesListController {
         }
         val userCloudServiceList = cloudServiceUserRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
-        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ it.key in userCloudServiceList.filter{it.loggedIn}.map{it.cloudServiceUuid}}
+        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ extensionConfig -> extensionConfig.key in userCloudServiceList.filter{it.loggedIn}.map{it.cloudServiceUuid}}
 
         return ResponseEntity(CloudServiceExtensionList(filteredCloudServices.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}}), HttpStatus.OK)
     }
