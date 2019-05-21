@@ -73,14 +73,16 @@ class CloudServicesListController {
      *
      * @returns An instance of CloudServiceExtensionList in a REST response
      */
-    @RequestMapping("/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
+    @RequestMapping("/user/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
     fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
-        //return an empty list if the user doesn't exist
-        val user = userRepository.findByUsername(username?: throw CloudBackEncUserNotFound()) ?: throw CloudBackEncUserNotFound()
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-
+        val user = if (username.isNullOrBlank()){
+                currentUser
+            } else {
+                userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()
+            }
         //authorized user requesting the list must either be the user in the request or be an admin
         if (!((user.username == authorizedUser.name) || (currentUser.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) == true))) {
             return ResponseEntity(CloudServiceExtensionList(), HttpStatus.FORBIDDEN)
@@ -91,5 +93,7 @@ class CloudServicesListController {
 
         return ResponseEntity(CloudServiceExtensionList(filteredCloudServices.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}}), HttpStatus.OK)
     }
+
+
 
 }

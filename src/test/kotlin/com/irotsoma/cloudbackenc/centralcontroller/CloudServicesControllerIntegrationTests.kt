@@ -69,7 +69,7 @@ class CloudServicesControllerIntegrationTests {
         //below is only valid when google drive plugin is installed in test extensions folder
         assert(testValue.body!!.contains(expected))
 
-        val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/test", CloudServiceExtensionList::class.java)
+        val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/user/test", CloudServiceExtensionList::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
         //below is only valid when google drive plugin is installed in test extensions folder
         assert(testValue2.body!!.contains(expected))
