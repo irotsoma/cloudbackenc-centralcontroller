@@ -22,6 +22,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServicesSettings
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
@@ -72,6 +73,8 @@ class CloudServiceLoginController {
     lateinit var messageSource: MessageSource
     @Autowired
     private lateinit var userRepository: UserAccountRepository
+    @Autowired
+    private lateinit var cloudServicesSettings:CloudServicesSettings
 
     /**
      * Rest POST service which calls the login function of the cloud service.
@@ -85,7 +88,14 @@ class CloudServiceLoginController {
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
+        val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
+        }
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret!!
+        }
+        val authenticationService = cloudServiceFactoryInstance.authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val response : CloudServiceUser.STATE
@@ -127,7 +137,14 @@ class CloudServiceLoginController {
     fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
-        val authenticationService = (cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory).authenticationService
+        val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
+        }
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret!!
+        }
+        val authenticationService = cloudServiceFactoryInstance.authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
 

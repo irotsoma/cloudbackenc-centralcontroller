@@ -21,6 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServicesSettings
 import com.irotsoma.cloudbackenc.centralcontroller.data.*
 import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
 import com.irotsoma.cloudbackenc.centralcontroller.files.CloudServiceFilesSettings
@@ -86,6 +87,9 @@ class FileController {
 
     @Autowired
     private lateinit var userRepository: UserAccountRepository
+
+    @Autowired
+    private lateinit var cloudServicesSettings: CloudServicesSettings
     /**
      * Call to send a file to a cloud service.  Can be either a new file or a new version of an existing file.
      *
@@ -121,7 +125,8 @@ class FileController {
                             logger.error("Unable to find file with ID: $deleteItem")
                             indexToDelete++
                         } else {
-                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[UUID.fromString(fileToDelete.get().cloudServiceUuid)]
+                            val cloudServiceUuid = UUID.fromString(fileToDelete.get().cloudServiceUuid)
+                            val cloudServiceFactoryClass = cloudServiceFactoryRepository.extensions[cloudServiceUuid]
                             if (cloudServiceFactoryClass == null) {
                                 logger.error("Unable to load cloud service factory with UUID: ${fileToDelete.get().cloudServiceUuid}")
                                 indexToDelete++
@@ -129,6 +134,12 @@ class FileController {
                                 //delete the file using the plugin service
                                 try {
                                     val factory = cloudServiceFactoryClass.getDeclaredConstructor().newInstance() as CloudServiceFactory
+                                    if (!cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientId.isNullOrBlank()){
+                                        factory.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientId!!
+                                    }
+                                    if (!cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientSecret.isNullOrBlank()){
+                                        factory.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientSecret!!
+                                    }
                                     val deleteSuccess = factory.cloudServiceFileIOService.delete(fileToDelete.get().toCloudServiceFile(), currentUser.cloudBackEncUser())
                                     if (deleteSuccess) {
                                         //delete the entry from the database
@@ -159,6 +170,12 @@ class FileController {
             if (cloudServiceFactory == null) {
                 logger.error("Unable to load the cloud service extension with UUID: $cloudServiceUuid for file with UUID: ${fileObject.fileUuid}.")
                 return ResponseEntity(Pair(fileObject.fileUuid, -1L), HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+            if (!cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientId.isNullOrBlank()){
+                cloudServiceFactory.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientId!!
+            }
+            if (!cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientSecret.isNullOrBlank()){
+                cloudServiceFactory.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[cloudServiceUuid.toString()]?.clientSecret!!
             }
             val tempFile = createTempFile(fileObject.fileUuid.toString())
             file.transferTo(tempFile)
