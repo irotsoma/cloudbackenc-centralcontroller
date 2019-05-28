@@ -66,7 +66,7 @@ import javax.crypto.spec.SecretKeySpec
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services/files")
 class FileController {
     /** kotlin-logging implementation*/
-    companion object: KLogging()
+    private companion object: KLogging()
     @Autowired
     lateinit var cloudServiceFilesSettings: CloudServiceFilesSettings
 

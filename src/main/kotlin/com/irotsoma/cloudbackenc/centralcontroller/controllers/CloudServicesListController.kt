@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class CloudServicesListController {
     /** kotlin-logging implementation*/
-    companion object: KLogging()
+    private companion object: KLogging()
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
@@ -73,9 +73,9 @@ class CloudServicesListController {
      *
      * @returns An instance of CloudServiceExtensionList in a REST response
      */
-    @RequestMapping("/user/{username}",method = [(RequestMethod.GET)],produces = ["application/json"])
+    @RequestMapping(path=["/user","/user/{username}"],method = [(RequestMethod.GET)],produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun getUserCloudServices(@PathVariable(value="username") username :String?) : ResponseEntity<CloudServiceExtensionList> {
+    fun getUserCloudServices(@PathVariable(value="username", required = false) username :String?) : ResponseEntity<CloudServiceExtensionList> {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val user = if (username.isNullOrBlank()){

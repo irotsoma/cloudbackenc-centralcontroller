@@ -61,7 +61,7 @@ import java.util.*
 @RestController
 class CloudServiceLoginController {
     /** kotlin-logging implementation*/
-    companion object: KLogging()
+    private companion object: KLogging()
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager

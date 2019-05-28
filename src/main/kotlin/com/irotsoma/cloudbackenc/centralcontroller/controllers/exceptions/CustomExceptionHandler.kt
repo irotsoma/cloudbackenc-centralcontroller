@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse
 @ControllerAdvice
 class CustomExceptionHandler : ResponseEntityExceptionHandler() {
     /** kotlin-logging implementation */
-    companion object: KLogging()
+    private companion object: KLogging()
     /**
      * Generates a message for instances of CloudServiceException thrown by any REST controllers.
      */

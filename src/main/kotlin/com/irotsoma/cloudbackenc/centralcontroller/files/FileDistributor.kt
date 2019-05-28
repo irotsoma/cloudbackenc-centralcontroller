@@ -43,7 +43,7 @@ import java.util.*
 @Service
 class FileDistributor {
     /** kotlin-logging implementation*/
-    companion object: KLogging(){
+    private companion object: KLogging(){
         /** interval for checking the space available in configured cloud services */
         const val delay = 43200000L //check every 12 hours
     }

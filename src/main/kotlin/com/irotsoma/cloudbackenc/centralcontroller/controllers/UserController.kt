@@ -69,7 +69,7 @@ import javax.servlet.http.HttpServletResponse
 @RequestMapping("\${centralcontroller.api.v1.path}/users")
 class UserController {
     /** kotlin-logging implementation */
-    companion object: KLogging()
+    private companion object: KLogging()
     @Autowired
     private lateinit var javaMailSender: JavaMailSender
     @Autowired

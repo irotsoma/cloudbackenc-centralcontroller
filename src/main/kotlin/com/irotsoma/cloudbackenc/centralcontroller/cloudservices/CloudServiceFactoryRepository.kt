@@ -43,7 +43,7 @@ import javax.annotation.PostConstruct
 class CloudServiceFactoryRepository : ExtensionRepository(), ApplicationContextAware {
 
     /** kotlin-logging implementation*/
-    companion object: KLogging()
+    private companion object: KLogging()
     //inject settings
     @Autowired lateinit var cloudServicesSettings: CloudServicesSettings
 
