@@ -18,10 +18,10 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
-import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 
 /**
@@ -53,8 +54,6 @@ class CloudServicesListController {
     private companion object: KLogging()
 
     @Autowired
-    private lateinit var userAccountDetailsManager: UserAccountDetailsManager
-    @Autowired
     private lateinit var userRepository: UserAccountRepository
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
@@ -63,10 +62,23 @@ class CloudServicesListController {
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
-    @RequestMapping(path=["/","/{uuid}"], method = [RequestMethod.GET],produces = ["application/json"])
+    @RequestMapping(path=["", "/", "/{uuid}"], method = [RequestMethod.GET],produces = ["application/json"])
     @ResponseBody fun getCloudServices(@PathVariable(value="uuid", required = false) cloudServiceUuid: String?) : CloudServiceExtensionList {
         //copy the values of the extension configs in the repository to a CloudServiceExtensionConfigList and mask the factory class and package name since they aren't required and otherwise might cause security issues if shared
-        return CloudServiceExtensionList(cloudServiceFactoryRepository.extensionConfigs.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}})
+        if (!cloudServiceUuid.isNullOrBlank()) {
+            CloudServiceExtensionList((
+                    cloudServiceFactoryRepository.extensionConfigs[UUID.fromString(cloudServiceUuid)] as CloudServiceExtension?)?.
+                    apply{this.factoryClass = ""; this.packageName=""}
+                    ?: throw InvalidCloudServiceUuidException()
+            )
+        }
+
+
+        return CloudServiceExtensionList(*(
+                cloudServiceFactoryRepository.extensionConfigs.values.
+                        map { it as CloudServiceExtension}.toTypedArray().
+                        apply { this.forEach { it.factoryClass = ""; it.packageName="" } }
+                ))
     }
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed which the user logged in (though the login may have expired).
@@ -89,9 +101,21 @@ class CloudServicesListController {
         }
         val userCloudServiceList = cloudServiceUserRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
-        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.filter{ extensionConfig -> extensionConfig.key in userCloudServiceList.filter{it.loggedIn}.map{it.cloudServiceUuid}}
+        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.
+                filter { extensionConfig -> extensionConfig.key in userCloudServiceList.
+                        filter { it.loggedIn }.
+                        map { it.cloudServiceUuid }
+                }
 
-        return ResponseEntity(CloudServiceExtensionList(filteredCloudServices.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}}), HttpStatus.OK)
+        return ResponseEntity(
+                CloudServiceExtensionList(*(
+                        filteredCloudServices.values.
+                                map { it as CloudServiceExtension }.toTypedArray().
+                                apply { this.
+                                        forEach { it.factoryClass = ""; it.packageName="" }
+                                }
+                        ))
+                , HttpStatus.OK)
     }
 
 

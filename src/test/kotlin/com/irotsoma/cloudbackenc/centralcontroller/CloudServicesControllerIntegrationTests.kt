@@ -65,9 +65,13 @@ class CloudServicesControllerIntegrationTests {
         }
         val testValue = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services", CloudServiceExtensionList::class.java)
         assert(testValue.statusCode==HttpStatus.OK)
+        val testValue3 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", CloudServiceExtensionList::class.java)
+        assert(testValue3.statusCode==HttpStatus.OK)
+
         val expected = CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1)
         //below is only valid when google drive plugin is installed in test extensions folder
         assert(testValue.body!!.contains(expected))
+        assert(testValue3.body!!.contains(expected))
 
         val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/user/test", CloudServiceExtensionList::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
