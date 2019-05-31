@@ -25,23 +25,23 @@ import com.irotsoma.cloudbackenc.common.RestExceptionExceptions
 /**
  * Custom exception for trying to create a duplicate user.
  */
-class DuplicateUserException : RestException(RestExceptionExceptions.Duplicate_User)
+class DuplicateUserException : RestException(RestExceptionExceptions.DUPLICATE_USER)
 /**
  * Custom exception for trying to access /cloud-services with an invalid UUID
  */
-class InvalidCloudServiceUUIDException : RestException(RestExceptionExceptions.Invalid_Cloud_Service_UUID)
+class InvalidCloudServiceUuidException : RestException(RestExceptionExceptions.INVALID_CLOUD_SERVICE_UUID)
 
 /**
  * Custom exception for trying to access a URL with a user parameter with an invalid user ID
  */
-class CloudBackEncUserNotFound : RestException(RestExceptionExceptions.User_Not_Found)
+class CloudBackEncUserNotFound : RestException(RestExceptionExceptions.USER_NOT_FOUND)
 
 /**
  * Custom exception for invalid email address format
  */
-class InvalidEmailAddressException : RestException(RestExceptionExceptions.Invalid_Email_Address)
+class InvalidEmailAddressException : RestException(RestExceptionExceptions.INVALID_EMAIL_ADDRESS)
 
 /**
  * Custom exception for exceptions during the authentication process.  Used for internal server errors not for invalid credentials.
  */
-class AuthenticationException : RestException(RestExceptionExceptions.Authentication_Exception)
+class AuthenticationException : RestException(RestExceptionExceptions.AUTHENTICATION_EXCEPTION)

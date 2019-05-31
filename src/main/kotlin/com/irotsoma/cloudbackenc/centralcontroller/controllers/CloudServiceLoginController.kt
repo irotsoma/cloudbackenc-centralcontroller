@@ -23,7 +23,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAut
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServicesSettings
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUUIDException
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
@@ -87,7 +87,7 @@ class CloudServiceLoginController {
     @Secured("ROLE_USER","ROLE_ADMIN")
     fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUUIDException()
+        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUuidException()
         val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
         if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
             cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
@@ -136,7 +136,7 @@ class CloudServiceLoginController {
     @Secured("ROLE_USER","ROLE_ADMIN")
     fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUUIDException()
+        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUuidException()
         val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
         if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
             cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!

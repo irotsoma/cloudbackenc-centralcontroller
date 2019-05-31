@@ -63,8 +63,8 @@ class CloudServicesListController {
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */
-    @RequestMapping(method = [RequestMethod.GET],produces = ["application/json"])
-    @ResponseBody fun getCloudServices() : CloudServiceExtensionList {
+    @RequestMapping(path=["/","/{uuid}"], method = [RequestMethod.GET],produces = ["application/json"])
+    @ResponseBody fun getCloudServices(@PathVariable(value="uuid", required = false) cloudServiceUuid: String?) : CloudServiceExtensionList {
         //copy the values of the extension configs in the repository to a CloudServiceExtensionConfigList and mask the factory class and package name since they aren't required and otherwise might cause security issues if shared
         return CloudServiceExtensionList(cloudServiceFactoryRepository.extensionConfigs.values.map{it as CloudServiceExtension}.apply{this.forEach{it.factoryClass = ""; it.packageName=""}})
     }
@@ -75,7 +75,7 @@ class CloudServicesListController {
      */
     @RequestMapping(path=["/user","/user/{username}"],method = [(RequestMethod.GET)],produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun getUserCloudServices(@PathVariable(value="username", required = false) username :String?) : ResponseEntity<CloudServiceExtensionList> {
+    fun getUserCloudServices(@PathVariable(value="username", required = false) username: String?) : ResponseEntity<CloudServiceExtensionList> {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
         val user = if (username.isNullOrBlank()){
