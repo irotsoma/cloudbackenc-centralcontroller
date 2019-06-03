@@ -49,7 +49,7 @@ class SwaggerConfiguration {
                     ApiInfoBuilder().title("Central Controller REST Api")
                             .license("LGPL")
                             .licenseUrl("https://www.gnu.org/licenses/lgpl-3.0.html")
-                            .version("1")
+                            .version("1") //change api version if new version is added
                             .build()
             )
 }
