@@ -21,7 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
@@ -52,7 +52,7 @@ class FileDistributor {
     lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
 
     @Autowired
-    lateinit var cloudServiceUserRepository: CloudServiceUserRepository
+    lateinit var cloudServiceUserRepository: CloudServiceUserRequestRepository
 
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager

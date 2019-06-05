@@ -23,7 +23,6 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceAuthenticationRefreshListener
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
 import java.util.*
 
 /**
@@ -37,7 +36,7 @@ import java.util.*
  * @property userRepository JPA repository that stores internal user information
  * @author Justin Zak
  */
-class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, private val userAccountDetailsManager: UserAccountDetailsManager, private val userRepository: UserAccountRepository, override var cloudServiceUsername: String?, private val cloudServiceUserRepository: CloudServiceUserRepository) : CloudServiceAuthenticationRefreshListener {
+class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEncUser?, private val userAccountDetailsManager: UserAccountDetailsManager, private val userRepository: UserAccountRepository, override var cloudServiceUsername: String?, private val cloudServiceUserRepository: CloudServiceUserRequestRepository) : CloudServiceAuthenticationRefreshListener {
 
     /**
      * Called when the authentication state changes to update the status in the database.
@@ -45,14 +44,14 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
      * @param cloudServiceUuid UUID of the cloud service extension.
      * @param newState Updated authentication state.
      */
-    override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceUser.STATE) {
+    override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceAuthenticationState) {
         if (user != null) {
             val userId = userRepository.findByUsername(user!!.username)?.id ?: return
-            var cloudServiceUserInfo = cloudServiceUserRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+            var cloudServiceUserInfo = cloudServiceUserRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUserRequestname(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
-                cloudServiceUserInfo = CloudServiceUserObject(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+                cloudServiceUserInfo = CloudServiceUserRequestObject(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             }
-            cloudServiceUserInfo.loggedIn = newState == CloudServiceUser.STATE.LOGGED_IN
+            cloudServiceUserInfo.loggedIn = newState == CloudServiceAuthenticationState.LOGGED_IN
             cloudServiceUserRepository.save(cloudServiceUserInfo)
         }
     }

@@ -31,6 +31,7 @@ val jacksonVersion="2.9.8"
 val swaggerVersion="2.9.2"
 val javaMailVersion="1.6.3"
 val junitVersion="5.5.0-M1"
+val kotlinCoroutinesVersion="1.2.1"
 
 plugins {
     val kotlinVersion = "1.3.30"
@@ -90,6 +91,7 @@ if (!(project.extra["isReleaseVersion"] as Boolean)) {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
     //spring boot
     kapt("org.springframework.boot:spring-boot-configuration-processor")
     implementation( "org.springframework.boot:spring-boot-starter-actuator")

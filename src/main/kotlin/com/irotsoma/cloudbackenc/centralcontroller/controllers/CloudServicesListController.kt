@@ -19,7 +19,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
@@ -58,7 +58,7 @@ class CloudServicesListController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
-    private lateinit var cloudServiceUserRepository: CloudServiceUserRepository
+    private lateinit var cloudServiceUserRepository: CloudServiceUserRequestRepository
     /**
      * GET method for retrieving a list of Cloud Service Extensions currently installed.
      */

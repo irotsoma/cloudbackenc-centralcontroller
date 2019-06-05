@@ -34,7 +34,7 @@ import javax.persistence.*
  */
 @Entity
 @Table(name="user_cloud_service")
-data class CloudServiceUserObject(@Column(name="cloud_service_uuid",nullable=false, updatable = false) val cloudServiceUuid: UUID,
+data class CloudServiceUserRequestObject(@Column(name="cloud_service_uuid",nullable=false, updatable = false) val cloudServiceUuid: UUID,
                                   @Column(name="user_id",nullable=false, updatable = false) val userId: Long,
                                   @Column(name="cloud_service_username", nullable = true, updatable = false) val cloudServiceUsername: String?,
                                   @Column(name="logged_in",nullable=false) var loggedIn: Boolean = false){

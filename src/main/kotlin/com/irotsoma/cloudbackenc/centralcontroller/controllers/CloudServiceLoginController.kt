@@ -21,13 +21,11 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRepository
+import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServicesSettings
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceUser
+import com.irotsoma.cloudbackenc.common.cloudservices.*
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -43,8 +41,8 @@ import java.net.URL
 import java.util.*
 
 /**
- * Rest Controller that takes an instance of CloudServiceUser as JSON, calls the login method of the requested cloud
- * service as identified in the URL by UUID, and returns an instance of CloudServiceUser with the userId and login
+ * Rest Controller that takes an instance of CloudServiceAuthenticationRequest as JSON, calls the login method of the requested cloud
+ * service as identified in the URL by UUID, and returns an instance of CloudServiceAuthenticationRequest with the userId and login
  * token.
  *
  * Use POST method to /cloud_service/login/{uuid} where {uuid} is the uuid returned from the cloud service list
@@ -68,7 +66,7 @@ class CloudServiceLoginController {
     @Autowired
     private lateinit var cloudServiceFactoryRepository: CloudServiceFactoryRepository
     @Autowired
-    private lateinit var cloudServiceUserRepository: CloudServiceUserRepository
+    private lateinit var cloudServiceUserRepository: CloudServiceUserRequestRepository
     @Autowired
     lateinit var messageSource: MessageSource
     @Autowired
@@ -80,12 +78,12 @@ class CloudServiceLoginController {
      * Rest POST service which calls the login function of the cloud service.
      *
      * @param uuid The UUID of the cloud service extension.
-     * @param user A CloudServiceUser object that contains the user information for the cloud service.
-     * @return CloudServiceUser.STATE value indicating the login state.
+     * @param user A CloudServiceAuthenticationRequest object that contains the user information for the cloud service.
+     * @return CloudServiceAuthenticationState value indicating the login state.
      */
     @RequestMapping("/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
+    fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest) : ResponseEntity<CloudServiceAuthenticationResponse> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUuidException()
         val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
@@ -98,7 +96,7 @@ class CloudServiceLoginController {
         val authenticationService = cloudServiceFactoryInstance.authenticationService
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-        val response : CloudServiceUser.STATE
+        val response : CloudServiceAuthenticationResponse
         //debug message: ignore and let it default to null if URL is invalid or missing
         try {
             URL(user.authorizationCallbackURL)
@@ -106,35 +104,38 @@ class CloudServiceLoginController {
             logger.warn{messageSource.getMessage("centralcontroller.cloudservices.error.callback.invalid", emptyArray(), locale)}
         }
         //launch extension's login service
+        val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), userAccountDetailsManager, userRepository, if (user.username.isEmpty()) {
+            null
+        } else {
+            user.username
+        }, cloudServiceUserRepository)
+        authenticationService.cloudServiceAuthenticationRefreshListener = listener
+
         //TODO: make this async with a timeout
         try {
-            val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), userAccountDetailsManager, userRepository, if (user.username.isEmpty()){null}else{user.username}, cloudServiceUserRepository)
-            authenticationService.cloudServiceAuthenticationRefreshListener = listener
-            response = authenticationService.login(user, currentUser.cloudBackEncUser())
-        } catch (e:Exception ){
-            logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}"}
+            response = authenticationService.login(CloudServiceAuthenticationRequest(user.username, user.password, uuid.toString(), user.authorizationCallbackURL, user.replyWithAuthorizationUrl), currentUser.cloudBackEncUser())
+        } catch (e: Exception) {
+            logger.warn { "${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}" }
             throw CloudServiceException(e.message, e)
         }
         val status: HttpStatus =
-                when(response){
-                    CloudServiceUser.STATE.LOGGED_IN -> HttpStatus.OK
-                    CloudServiceUser.STATE.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
+                when (response.cloudServiceAuthenticationState) {
+                    CloudServiceAuthenticationState.LOGGED_IN -> HttpStatus.OK
+                    CloudServiceAuthenticationState.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
                     else -> HttpStatus.BAD_REQUEST
                 }
-
         return ResponseEntity(response, status)
-
     }
     /**
      * Rest POST service which calls the logout function of the cloud service.
      *
      * @param uuid The UUID of the cloud service extension.
-     * @param user A CloudServiceUser object that contains the user information for the cloud service.
-     * @return CloudServiceUser.STATE value indicating the login state.
+     * @param user A CloudServiceAuthenticationRequest object that contains the user information for the cloud service.
+     * @return CloudServiceAuthenticationState value indicating the login state.
      */
     @RequestMapping("/logout/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceUser) : ResponseEntity<CloudServiceUser.STATE> {
+    fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest) : ResponseEntity<CloudServiceAuthenticationState> {
         val locale = LocaleContextHolder.getLocale()
         val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUuidException()
         val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
@@ -156,7 +157,7 @@ class CloudServiceLoginController {
             logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}"}
             throw CloudServiceException(e.message, e)
         }
-        return ResponseEntity(CloudServiceUser.STATE.LOGGED_OUT, HttpStatus.OK)
+        return ResponseEntity(CloudServiceAuthenticationState.LOGGED_OUT, HttpStatus.OK)
     }
 
 }

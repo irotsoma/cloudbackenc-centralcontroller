@@ -30,36 +30,36 @@ import java.util.*
  * @author Justin Zak
  */
 @Repository
-interface CloudServiceUserRepository : JpaRepository<CloudServiceUserObject, Long> {
+interface CloudServiceUserRequestRepository : JpaRepository<CloudServiceUserRequestObject, Long> {
     /**
      * retrieve all records for an internal user
      *
      * @param userId The db ID of the internal user
-     * @returns A List of instances of [CloudServiceUserObject] representing the database records or null if the user has no records
+     * @returns A List of instances of [CloudServiceUserRequestObject] representing the database records or null if the user has no records
      */
-    fun findByUserId(userId: Long) : List<CloudServiceUserObject>?
+    fun findByUserId(userId: Long) : List<CloudServiceUserRequestObject>?
     /**
      * retrieve all records for an internal user for a specific cloud service extension
      *
      * @param userId The database ID of the internal user
      * @param cloudServiceUuid The UUID of the cloud service extension
-     * @returns A List of instances of [CloudServiceUserObject] representing the database records or null if the user has no records
+     * @returns A List of instances of [CloudServiceUserRequestObject] representing the database records or null if the user has no records
      */
-    fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: UUID): List<CloudServiceUserObject>?
+    fun findByUserIdAndCloudServiceUuid(userId: Long, cloudServiceUuid: UUID): List<CloudServiceUserRequestObject>?
     /**
      * retrieve a record for an internal user for a specific cloud service extension and associated cloud service username
      *
      * @param userId The database ID of the internal user
      * @param cloudServiceUuid The UUID of the cloud service extension
      * @param cloudServiceUsername The username used to log in to the cloud service
-     * @returns An instance of [CloudServiceUserObject] representing the database record or null if the user has no records
+     * @returns An instance of [CloudServiceUserRequestObject] representing the database record or null if the user has no records
      */
-    fun findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId: Long, cloudServiceUuid: String, cloudServiceUsername: String?): CloudServiceUserObject?
+    fun findByUserIdAndCloudServiceUuidAndCloudServiceUserRequestname(userId: Long, cloudServiceUuid: String, cloudServiceUsername: String?): CloudServiceUserRequestObject?
     /**
      * retrieve a list of all of the unique internal users who have configured cloud service logins
      *
      * @returns A List of instances of database user IDs representing the database records or null if there are no records
      */
-    @Query("SELECT DISTINCT userId FROM CloudServiceUserObject")
+    @Query("SELECT DISTINCT userId FROM CloudServiceUserRequestObject")
     fun findDistinctUserId(): List<Long>?
 }
