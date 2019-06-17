@@ -21,7 +21,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.files
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
+import com.irotsoma.cloudbackenc.centralcontroller.data.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceFactory

@@ -17,7 +17,7 @@
 /*
  * Created by irotsoma on 12/7/16.
  */
-package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
+package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -26,6 +26,8 @@ import java.util.*
 
 /**
  * JPA repository for link between users and cloud services.
+ * Note this software only supports one login per cloud service extension. To use multiple logins, multiple instances
+ * of the extension must be present with unique UUIDs. This is not recommended and highly discouraged.
  *
  * @author Justin Zak
  */
@@ -54,7 +56,7 @@ interface CloudServiceUserRequestRepository : JpaRepository<CloudServiceUserRequ
      * @param cloudServiceUsername The username used to log in to the cloud service
      * @returns An instance of [CloudServiceUserRequestObject] representing the database record or null if the user has no records
      */
-    fun findByUserIdAndCloudServiceUuidAndCloudServiceUserRequestname(userId: Long, cloudServiceUuid: String, cloudServiceUsername: String?): CloudServiceUserRequestObject?
+    fun findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId: Long, cloudServiceUuid: String, cloudServiceUsername: String?): CloudServiceUserRequestObject?
     /**
      * retrieve a list of all of the unique internal users who have configured cloud service logins
      *

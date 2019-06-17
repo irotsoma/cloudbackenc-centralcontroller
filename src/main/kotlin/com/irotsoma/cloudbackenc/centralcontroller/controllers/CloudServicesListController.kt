@@ -19,9 +19,9 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
+import com.irotsoma.cloudbackenc.centralcontroller.data.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
@@ -101,10 +101,16 @@ class CloudServicesListController {
         }
         val userCloudServiceList = cloudServiceUserRepository.findByUserId(user.id) ?: return ResponseEntity(CloudServiceExtensionList(), HttpStatus.OK)
         //return only services that are currently installed filtered to those where the user is currently logged in
-        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs.
-                filter { extensionConfig -> extensionConfig.key in userCloudServiceList.
-                        filter { it.loggedIn }.
-                        map { it.cloudServiceUuid }
+        val filteredCloudServices = cloudServiceFactoryRepository.extensionConfigs
+                .filter { extensionConfig -> extensionConfig.key in userCloudServiceList
+                        .filter { it.loggedIn }
+                        .map { it.cloudServiceUuid }
+                }
+                .toMutableMap() //create copy so we don't modify the originals adding userID
+                .apply{
+                    this.forEach{
+                        extension -> (extension.value as CloudServiceExtension).loggedInAsUserId = userCloudServiceList.filter{ it.cloudServiceUuid == extension.key }[0].cloudServiceUsername
+                    }
                 }
 
         return ResponseEntity(

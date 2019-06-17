@@ -20,9 +20,12 @@
 package com.irotsoma.cloudbackenc.centralcontroller.cloudservices
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
+import com.irotsoma.cloudbackenc.centralcontroller.data.CloudServiceUserRequestObject
+import com.irotsoma.cloudbackenc.centralcontroller.data.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceAuthenticationRefreshListener
+import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceAuthenticationState
 import java.util.*
 
 /**
@@ -47,9 +50,13 @@ class CloudServiceAuthenticationCompleteListener(override var user: CloudBackEnc
     override fun onChange(cloudServiceUuid: UUID, newState: CloudServiceAuthenticationState) {
         if (user != null) {
             val userId = userRepository.findByUsername(user!!.username)?.id ?: return
-            var cloudServiceUserInfo = cloudServiceUserRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUserRequestname(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+            var cloudServiceUserInfo = cloudServiceUserRepository.findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId, cloudServiceUuid.toString(),if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
             if (cloudServiceUserInfo == null){
-                cloudServiceUserInfo = CloudServiceUserRequestObject(cloudServiceUuid, userId, if(cloudServiceUsername.isNullOrEmpty()){null}else{cloudServiceUsername})
+                cloudServiceUserInfo = CloudServiceUserRequestObject(cloudServiceUuid, userId, if (cloudServiceUsername.isNullOrEmpty()) {
+                    null
+                } else {
+                    cloudServiceUsername
+                })
             }
             cloudServiceUserInfo.loggedIn = newState == CloudServiceAuthenticationState.LOGGED_IN
             cloudServiceUserRepository.save(cloudServiceUserInfo)

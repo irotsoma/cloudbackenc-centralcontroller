@@ -21,9 +21,9 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceAuthenticationCompleteListener
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceFactoryRepository
-import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.cloudservices.CloudServicesSettings
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidCloudServiceUuidException
+import com.irotsoma.cloudbackenc.centralcontroller.data.CloudServiceUserRequestRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.cloudservices.*
 import mu.KLogging
@@ -57,7 +57,7 @@ import java.util.*
 @Lazy
 @RequestMapping("\${centralcontroller.api.v1.path}/cloud-services")
 @RestController
-class CloudServiceLoginController {
+class CloudServiceAuthenticationController {
     /** kotlin-logging implementation*/
     private companion object: KLogging()
 
