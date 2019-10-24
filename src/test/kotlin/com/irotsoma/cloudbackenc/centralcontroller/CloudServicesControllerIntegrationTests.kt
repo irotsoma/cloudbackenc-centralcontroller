@@ -19,8 +19,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller
 
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtension
-import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceExtensionList
+import com.irotsoma.cloudbackenc.common.cloudservices.*
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
 import io.jsonwebtoken.Jwts
 import org.junit.Test
@@ -75,7 +74,8 @@ class CloudServicesControllerIntegrationTests {
         val testValue2 = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/user/test", CloudServiceExtensionList::class.java)
         assert(testValue2.statusCode==HttpStatus.OK)
         //below is only valid when google drive plugin is installed in test extensions folder
-        assert(testValue2.body!!.contains(expected))
+        val expected2 = CloudServiceExtension("1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", "Google Drive", 1,"test")
+        assert(testValue2.body!!.contains(expected2))
     }
 
     //tests user token generation and parsing
@@ -139,9 +139,9 @@ class CloudServicesControllerIntegrationTests {
         }
         val requestHeaders = HttpHeaders()
         requestHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        val httpEntity = HttpEntity<CloudServiceUserRequest>(CloudServiceUserRequest("test",null,"1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", null), requestHeaders)
-        val returnValue = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/login/1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", httpEntity, CloudServiceUserRequest.STATE::class.java)
-        assert(returnValue.body== CloudServiceUserRequest.STATE.TEST)
+        val httpEntity = HttpEntity(CloudServiceAuthenticationRequest("test",null,"1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", null), requestHeaders)
+        val returnValue = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/cloud-services/login/1d3cb21f-5b88-4b3c-8cb8-1afddf1ff375", httpEntity, CloudServiceAuthenticationResponse::class.java)
+        assert(returnValue.body?.cloudServiceAuthenticationState == CloudServiceAuthenticationState.TEST)
 
     }
 
