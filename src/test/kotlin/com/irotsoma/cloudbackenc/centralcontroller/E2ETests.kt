@@ -19,11 +19,7 @@
  */
 package com.irotsoma.cloudbackenc.centralcontroller
 
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.DuplicateUserException
-import com.irotsoma.cloudbackenc.common.AuthenticationToken
-import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
-import com.irotsoma.cloudbackenc.common.CloudBackEncUser
-import com.irotsoma.cloudbackenc.common.UserAccountState
+import com.irotsoma.cloudbackenc.common.*
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionAlgorithmTypes
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionProfile
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionSymmetricEncryptionAlgorithms
@@ -38,6 +34,8 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.client.HttpClientErrorException
+import java.util.*
+
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -63,6 +61,13 @@ class E2ETests {
     fun e2eUser(){
 
         createUser()
+
+        //test duplicate error message is returned
+        setupRestTemplate(adminUsername, adminPassword)
+        user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+        val userDuplicateResult = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), CloudBackEncUser::class.java)
+        assert(userDuplicateResult.headers["RestException"]?.get(0) == RestExceptionExceptions.DUPLICATE_USER.friendlyMessage(Locale.US))
+
 
         setupRestTemplate(user!!.username, user!!.password)
         val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
@@ -97,8 +102,8 @@ class E2ETests {
             } else {
                 throw e
             }
-        } catch (e: DuplicateUserException){
-            assert(false) {"Username in e2e settings file already exists."}
+        } catch (e: Exception){
+            assert(false)
         }
     }
 
@@ -113,5 +118,6 @@ class E2ETests {
             restTemplate = TestRestTemplate(username, password)
         }
     }
+
 
 }
