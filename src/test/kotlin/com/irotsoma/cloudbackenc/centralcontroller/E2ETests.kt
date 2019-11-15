@@ -65,6 +65,7 @@ class E2ETests {
         //test duplicate error message is returned
         setupRestTemplate(adminUsername, adminPassword)
         user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+
         val userDuplicateResult = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), CloudBackEncUser::class.java)
         assert(userDuplicateResult.headers["RestException"]?.get(0) == RestExceptionExceptions.DUPLICATE_USER.friendlyMessage(Locale.US))
 
@@ -102,7 +103,7 @@ class E2ETests {
             } else {
                 throw e
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             assert(false)
         }
     }

@@ -26,16 +26,17 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 /**
  * Used to interpret rest exceptions and return the friendly error message as a header. Also avoids JSON parsing exceptions by the rest template.
  */
 @ControllerAdvice
-internal class GlobalExceptionHandler {
+internal class GlobalRestExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(RestException::class)
-    fun <T : Any?> handle(exception: RestException, httpServletResponse: HttpServletResponse, locale: Locale): ResponseEntity<T> {
+    fun <T : Any?> handle(exception: RestException, httpServletRequest: HttpServletRequest, httpServletResponse: HttpServletResponse, locale: Locale): ResponseEntity<T> {
         return ResponseEntity.badRequest().header("RestException",exception.type.friendlyMessage(locale)).build()
     }
 }

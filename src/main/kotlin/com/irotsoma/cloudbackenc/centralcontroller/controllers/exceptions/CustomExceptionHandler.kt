@@ -51,7 +51,7 @@ class CustomExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(RestException::class)
     fun handleRestException(response: HttpServletResponse, exception: RestException) : String?{
         logger.error("Rest Exception: ${exception.type.friendlyMessage(LocaleContextHolder.getLocale())}")
-        response.sendError(exception.type.httpStatusCode(),exception.type.friendlyMessage(LocaleContextHolder.getLocale()))
+        response.sendError(exception.type.httpStatusCode(), exception.type.friendlyMessage(LocaleContextHolder.getLocale()))
         return exception.type.friendlyMessage(LocaleContextHolder.getLocale())
     }
     /**
