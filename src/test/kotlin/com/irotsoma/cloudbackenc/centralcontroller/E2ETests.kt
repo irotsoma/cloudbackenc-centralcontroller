@@ -31,10 +31,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.client.HttpClientErrorException
-import java.util.*
 
 
 @RunWith(SpringRunner::class)
@@ -58,40 +59,35 @@ class E2ETests {
     val adminPassword = "insecurepassword"
 
     @Test
-    fun e2eUser(){
+    fun e2eUser() {
 
         createUser()
 
-        //test duplicate error message is returned
-        setupRestTemplate(adminUsername, adminPassword)
-        user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+        testDuplicateUser()
 
-        val userDuplicateResult = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), CloudBackEncUser::class.java)
-        assert(userDuplicateResult.headers["RestException"]?.get(0) == RestExceptionExceptions.DUPLICATE_USER.friendlyMessage(Locale.US))
+        testUserTokens()
 
-
-        setupRestTemplate(user!!.username, user!!.password)
-        val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
-        assert(userTokenResponse.body != null) { "User login failed while getting auth token." }
-        userToken = userTokenResponse.body
+        testUpdateUser()
 
         createEncryptionProfile()
 
         //TODO: add more tests
 
-        setupRestTemplate(adminUsername, adminPassword)
-        restTemplate.delete("$protocol://localhost:$port$apiV1Path/users/${user!!.username}")
+        testDeleteUser()
     }
 
-    fun createEncryptionProfile(){
+    fun createEncryptionProfile() {
         val encryptionProfile = EncryptionProfile(EncryptionAlgorithmTypes.SYMMETRIC, EncryptionSymmetricEncryptionAlgorithms.AES, EncryptionSymmetricKeyAlgorithms.AES,128,128, null)
-        setupRestTemplate(user!!.username,user!!.password)
-        val responseEntity = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users/encryption",encryptionProfile,Any::class.java)
+        setupRestTemplate(null,null)
+        val requestHeaders = HttpHeaders()
+        requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${userToken?.token}")
+        val httpEntity = HttpEntity(encryptionProfile, requestHeaders)
+        val responseEntity = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/users/encryption",HttpMethod.POST,httpEntity,Any::class.java)
         assert(responseEntity.statusCode == HttpStatus.CREATED)
     }
 
 
-    fun createUser(){
+    fun createUser() {
         setupRestTemplate(adminUsername, adminPassword)
         user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
         try {
@@ -109,7 +105,7 @@ class E2ETests {
     }
 
 
-    fun setupRestTemplate(username: String?, password:String?){
+    fun setupRestTemplate(username: String? = null, password:String? = null) {
         if (useSSL!=null && useSSL!="") {
             protocol= "https"
             trustSelfSignedSSL()
@@ -120,5 +116,39 @@ class E2ETests {
         }
     }
 
+    fun testDuplicateUser() {
+        setupRestTemplate(adminUsername, adminPassword)
+        user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+        val userDuplicateResult = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), RestResponseBody::class.java)
+        assert(userDuplicateResult.body?.restException == RestExceptionExceptions.DUPLICATE_USER)
 
+    }
+
+    fun testUserTokens() {
+        setupRestTemplate(user!!.username, user!!.password)
+        val userTokenResponse = restTemplate.getForEntity("$protocol://localhost:$port$apiV1Path/auth", AuthenticationToken::class.java)
+        assert(userTokenResponse.hasBody()) { "User login failed while getting auth token." }
+        userToken = userTokenResponse.body
+        setupRestTemplate(null,null)
+        val requestHeaders = HttpHeaders()
+        requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${userToken?.token}")
+        val httpEntity = HttpEntity<Any>(requestHeaders)
+        val secondResponse = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/auth", HttpMethod.GET,httpEntity,AuthenticationToken::class.java)
+        assert(secondResponse.hasBody()) { "User login failed using previously retrieved token." }
+    }
+
+    fun testUpdateUser() {
+        user = CloudBackEncUser(userUsername, CloudBackEncUser.PASSWORD_MASKED, "test@test.com", UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
+        setupRestTemplate()
+        val requestHeaders = HttpHeaders()
+        requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${userToken?.token}")
+        val httpEntity = HttpEntity<CloudBackEncUser>(user, requestHeaders)
+        val result = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/users",HttpMethod.PUT, httpEntity, CloudBackEncUser::class.java)
+        assert(result.body?.email == "test@test.com") {"User email update failed."}
+    }
+
+    fun testDeleteUser() {
+        setupRestTemplate(adminUsername, adminPassword)
+        restTemplate.delete("$protocol://localhost:$port$apiV1Path/users/${user!!.username}")
+    }
 }

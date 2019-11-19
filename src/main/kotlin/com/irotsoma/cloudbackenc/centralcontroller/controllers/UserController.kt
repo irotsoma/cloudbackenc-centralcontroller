@@ -41,6 +41,7 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.mail.MailSendException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.security.access.annotation.Secured
@@ -142,7 +143,7 @@ class UserController {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         //authorized user requesting the update must either be the user in the request or be an admin
-        if ((updatedUser.username != authorizedUser.name) || (!currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))
+        if (!((updatedUser.username == authorizedUser.name) || (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name}))))
         {
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
@@ -179,6 +180,8 @@ class UserController {
             } catch (e: MessagingException) {
                 e.printStackTrace() //TODO: create a custom exception here
             } catch (e: NoSuchMessageException){
+                e.printStackTrace() //TODO: create a custom exception here
+            } catch (e: MailSendException){
                 e.printStackTrace() //TODO: create a custom exception here
             }
 

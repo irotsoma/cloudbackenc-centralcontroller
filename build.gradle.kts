@@ -34,7 +34,7 @@ val junitVersion="5.5.0-M1"
 val kotlinCoroutinesVersion="1.2.1"
 
 plugins {
-    val kotlinVersion = "1.3.30"
+    val kotlinVersion = "1.3.60"
     val springBootVersion = "2.1.2.RELEASE"
     val liquibaseGradleVersion = "2.0.1"
     val dokkaVersion = "0.9.17"

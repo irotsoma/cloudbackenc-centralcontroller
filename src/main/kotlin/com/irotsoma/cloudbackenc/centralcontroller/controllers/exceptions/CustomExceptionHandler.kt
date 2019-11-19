@@ -19,6 +19,8 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions
 
 import com.irotsoma.cloudbackenc.common.RestException
+import com.irotsoma.cloudbackenc.common.RestExceptionExceptions
+import com.irotsoma.cloudbackenc.common.RestResponseBody
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
 import mu.KLogging
@@ -26,6 +28,7 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import javax.servlet.http.HttpServletResponse
 
@@ -46,13 +49,14 @@ class CustomExceptionHandler : ResponseEntityExceptionHandler() {
         return exception.message
     }
     /**
-     * Generates a localized message for instances of RestException thrown by any REST controllers.
+     * Returns a RestResponseBody with the RestException.
      */
     @ExceptionHandler(RestException::class)
-    fun handleRestException(response: HttpServletResponse, exception: RestException) : String?{
+    @ResponseBody
+    fun handleRestException(response: HttpServletResponse, exception: RestException) : RestResponseBody<RestExceptionExceptions> {
         logger.error("Rest Exception: ${exception.type.friendlyMessage(LocaleContextHolder.getLocale())}")
-        response.sendError(exception.type.httpStatusCode(), exception.type.friendlyMessage(LocaleContextHolder.getLocale()))
-        return exception.type.friendlyMessage(LocaleContextHolder.getLocale())
+        response.status = 500
+        return RestResponseBody(exception.type)
     }
     /**
      * Generates a message for instances of EncryptionException thrown by any REST controllers.
