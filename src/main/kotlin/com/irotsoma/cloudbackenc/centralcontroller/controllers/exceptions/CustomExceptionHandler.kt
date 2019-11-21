@@ -20,7 +20,6 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions
 
 import com.irotsoma.cloudbackenc.common.RestException
 import com.irotsoma.cloudbackenc.common.RestExceptionExceptions
-import com.irotsoma.cloudbackenc.common.RestResponseBody
 import com.irotsoma.cloudbackenc.common.cloudservices.CloudServiceException
 import com.irotsoma.cloudbackenc.common.encryption.EncryptionException
 import mu.KLogging
@@ -49,14 +48,14 @@ class CustomExceptionHandler : ResponseEntityExceptionHandler() {
         return exception.message
     }
     /**
-     * Returns a RestResponseBody with the RestException.
+     * Returns a RestExceptionException.
      */
     @ExceptionHandler(RestException::class)
     @ResponseBody
-    fun handleRestException(response: HttpServletResponse, exception: RestException) : RestResponseBody<RestExceptionExceptions> {
+    fun handleRestException(response: HttpServletResponse, exception: RestException) : RestExceptionExceptions {
         logger.error("Rest Exception: ${exception.type.friendlyMessage(LocaleContextHolder.getLocale())}")
-        response.status = 500
-        return RestResponseBody(exception.type)
+        response.status = exception.type.httpStatusCode()
+        return exception.type
     }
     /**
      * Generates a message for instances of EncryptionException thrown by any REST controllers.

@@ -110,7 +110,7 @@ class FileController {
         }
 
         if (fileObject!=null){
-            val fileList = ArrayList(fileObject.cloudServiceFileList)
+            val fileList = ArrayList(fileObject.cloudServiceFileList ?: emptyList())
             if ((fileList.size > cloudServiceFilesSettings.maxFileVersions) && (fileList.size != 0)) {
                 //if there are already too many file versions, then delete the oldest one(s) (first one(s) due to order by statement)
                 var indexToDelete = 0

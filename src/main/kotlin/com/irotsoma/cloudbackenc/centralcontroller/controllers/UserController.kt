@@ -22,6 +22,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDet
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.DuplicateUserException
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.UserUnauthorizedException
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
@@ -38,9 +39,7 @@ import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
 import org.springframework.context.annotation.Lazy
 import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.mail.MailSendException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -93,7 +92,8 @@ class UserController {
     /** Post method for creating new users (Admin only) */
     @RequestMapping(method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
-    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder): ResponseEntity<Any>{
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder, response: HttpServletResponse) {
         //val authorizedUser = SecurityContextHolder.getContext().authentication
         //check to see if there is a duplicate user
         if (userRepository.findByUsername(user.username) != null){
@@ -125,13 +125,7 @@ class UserController {
             } catch (e: NoSuchMessageException){
                 e.printStackTrace() //TODO: create a custom exception here
             }
-
         }
-        //return the path to the user id
-        val responseLocation = uriComponentsBuilder.path("$apiPath/users/{userId}").buildAndExpand(user.username)
-        val headers = HttpHeaders()
-        headers.location = responseLocation.toUri()
-        return ResponseEntity(headers, HttpStatus.CREATED)
     }
 
     /**
@@ -139,13 +133,14 @@ class UserController {
      */
     @RequestMapping(method = [RequestMethod.PUT], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : ResponseEntity<CloudBackEncUser>{
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun updateUser(@RequestBody updatedUser:CloudBackEncUser, response: HttpServletResponse) : CloudBackEncUser{
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         //authorized user requesting the update must either be the user in the request or be an admin
-        if (!((updatedUser.username == authorizedUser.name) || (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name}))))
-        {
-            return ResponseEntity(HttpStatus.FORBIDDEN)
+        if (!((updatedUser.username == authorizedUser.name) || (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))) {
+            throw UserUnauthorizedException()
         }
         //
         try{
@@ -184,9 +179,8 @@ class UserController {
             } catch (e: MailSendException){
                 e.printStackTrace() //TODO: create a custom exception here
             }
-
         }
-        return ResponseEntity(updatedUser.maskedPasswordInstance(), HttpStatus.OK)
+        return updatedUser.maskedPasswordInstance()
     }
 
     /**
@@ -194,10 +188,10 @@ class UserController {
      */
     @RequestMapping("/{username}", method = [RequestMethod.DELETE], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
-    fun deleteUser(@PathVariable username: String) : ResponseEntity<Any>{
+    @ResponseStatus(HttpStatus.OK)
+    fun deleteUser(@PathVariable username: String){
         val requestedUser = userRepository.findByUsername(username) ?: throw CloudBackEncUserNotFound()
         userRepository.delete(requestedUser)
-        return ResponseEntity(HttpStatus.OK)
     }
 
     /**
@@ -205,28 +199,31 @@ class UserController {
      */
     @RequestMapping(value=["/{username}", "/", ""], method = [RequestMethod.GET], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun getUser(@PathVariable(required=false) username: String?) : ResponseEntity<CloudBackEncUser>{
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getUser(@PathVariable(required=false) username: String?, response: HttpServletResponse) : CloudBackEncUser {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
-        val requestedUser = userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
+        val requestedUser = userRepository.findByUsername(if (username.isNullOrBlank()) {currentUserAccount.username} else {username})
         //if the user is an admin then check if the requested user is found otherwise if not admin respond with
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
             if (requestedUser == null){
-                return ResponseEntity(HttpStatus.NOT_FOUND)
+                throw CloudBackEncUserNotFound()
             }
         } else if (requestedUser?.username != authorizedUser.name) {
-            return ResponseEntity(HttpStatus.FORBIDDEN)
+            throw UserUnauthorizedException()
         }
-        return ResponseEntity(requestedUser!!.cloudBackEncUser(),HttpStatus.OK)
+        return requestedUser!!.cloudBackEncUser()
     }
 
     /**
      * Sets up or allows a user to change their default encryption settings profile (Admin or affected user only)
      */
-    @RequestMapping(value=["/{username}/encryption","/encryption"], method = [RequestMethod.POST, RequestMethod.PUT], produces = ["application/json"])
+    @RequestMapping(value=["/{username}/encryption","/encryption"], method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile): ResponseEntity<Any>{
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createEncryptionProfile(@PathVariable(required=false) username: String?, @RequestBody profile: EncryptionProfile, response: HttpServletResponse){
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         val requestedUser = userRepository.findByUsername(if (username.isNullOrBlank()){currentUserAccount.username}else{username})
@@ -234,10 +231,10 @@ class UserController {
         //forbidden even if the requested user is not found to prevent non-admins from spamming to get valid usernames
         if (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})){
             if (requestedUser == null){
-                return ResponseEntity(HttpStatus.NOT_FOUND)
+                throw CloudBackEncUserNotFound()
             }
         } else if (requestedUser?.username != authorizedUser.name) {
-            return ResponseEntity(HttpStatus.FORBIDDEN)
+            throw UserUnauthorizedException()
         }
         //validate combinations of information in encryption profile
         if (profile.encryptionType == EncryptionAlgorithmTypes.SYMMETRIC){
@@ -281,7 +278,5 @@ class UserController {
         val encryptionProfileId = encryptionProfileRepository.saveAndFlush(encryptionProfileObject)
         requestedUser!!.defaultEncryptionProfile = encryptionProfileId
         userRepository.saveAndFlush(requestedUser)
-
-        return ResponseEntity(HttpStatus.CREATED)
     }
 }

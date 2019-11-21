@@ -22,17 +22,19 @@ package com.irotsoma.cloudbackenc.centralcontroller.controllers
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.jwt.TokenHandler
 import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.AuthenticationException
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidRequestException
 import com.irotsoma.cloudbackenc.centralcontroller.data.TokenRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.common.AuthenticationToken
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Rest controller that generates an auth token for a user to allow for background tasks to access the user
@@ -60,12 +62,14 @@ class AuthTokenController {
      */
     @RequestMapping("/{username}", method = [RequestMethod.GET], produces = ["application/json"])
     @Secured("ROLE_ADMIN")
-    fun getTokenForOther(@PathVariable username: String): ResponseEntity<AuthenticationToken>{
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    fun getTokenForOther(@PathVariable username: String): AuthenticationToken{
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(username) as User)
         if (token!=null) {
-            return ResponseEntity(token, HttpStatus.OK)
+            return token
         } else {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
+            throw CloudBackEncUserNotFound()
         }
     }
 
@@ -75,11 +79,13 @@ class AuthTokenController {
      */
     @RequestMapping(method = [RequestMethod.GET], produces = ["application/json"])
     @Secured ("ROLE_USER", "ROLE_ADMIN")
-    fun getToken(): ResponseEntity<AuthenticationToken>{
-        val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    fun getToken(): AuthenticationToken{
+        val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: throw AuthenticationException()
         val token = tokenHandler.createTokenForUser(userAccountDetailsManager.loadUserByUsername(authorizedUser.name) as User)
         if (token!=null) {
-            return ResponseEntity(token, HttpStatus.OK)
+            return token
         } else {
             throw AuthenticationException()
         }
@@ -90,12 +96,16 @@ class AuthTokenController {
      * @param token The token to be invalidated.
      */
     @RequestMapping(method = [RequestMethod.DELETE], params = ["token"])
-    fun invalidateToken(@RequestParam("token") token: String): ResponseEntity<Any>{
-        val tokenUuid = tokenHandler.parseUuidFromToken(token)?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        val tokenObject=tokenRepository.findByTokenUuid(tokenUuid) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.OK)
+    fun invalidateToken(@RequestParam("token") token: String, response: HttpServletResponse){
+        val tokenUuid = tokenHandler.parseUuidFromToken(token)?: throw InvalidRequestException()
+        val tokenObject=tokenRepository.findByTokenUuid(tokenUuid)
+        if (tokenObject == null) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), "Token not found.")
+            return
+        }
         tokenObject.valid = false
         tokenRepository.saveAndFlush(tokenObject)
-        return ResponseEntity(HttpStatus.OK)
     }
 
     /**
@@ -103,11 +113,11 @@ class AuthTokenController {
      */
     @RequestMapping(method = [RequestMethod.DELETE])
     @Secured ("ROLE_USER", "ROLE_ADMIN")
-    fun invalidateTokens(): ResponseEntity<Any>{
-        val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
-        val userId = userRepository.findByUsername(authorizedUser.name)?.id ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.OK)
+    fun invalidateTokens(){
+        val authorizedUser: Authentication = SecurityContextHolder.getContext().authentication ?: throw AuthenticationException()
+        val userId = userRepository.findByUsername(authorizedUser.name)?.id ?: throw AuthenticationException()
         tokenHandler.revokeTokensForUser(userId)
-        return ResponseEntity(HttpStatus.OK)
     }
     /**
      * Delete method available only to admin users that allows invalidating the tokens of a given user.
@@ -116,10 +126,10 @@ class AuthTokenController {
      */
     @RequestMapping("/{username}", method = [RequestMethod.DELETE])
     @Secured ("ROLE_ADMIN")
-    fun invalidateTokensForOther(@PathVariable username: String): ResponseEntity<Any>{
-        val userId = userRepository.findByUsername(username)?.id ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.OK)
+    fun invalidateTokensForOther(@PathVariable username: String){
+        val userId = userRepository.findByUsername(username)?.id ?: throw CloudBackEncUserNotFound()
         tokenHandler.revokeTokensForUser(userId)
-        return ResponseEntity(HttpStatus.OK)
     }
 
 

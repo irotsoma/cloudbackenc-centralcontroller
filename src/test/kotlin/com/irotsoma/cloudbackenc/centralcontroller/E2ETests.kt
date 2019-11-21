@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -119,8 +120,13 @@ class E2ETests {
     fun testDuplicateUser() {
         setupRestTemplate(adminUsername, adminPassword)
         user = CloudBackEncUser(userUsername, userPassword, null, UserAccountState.ACTIVE, listOf(CloudBackEncRoles.ROLE_USER))
-        val userDuplicateResult = restTemplate.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), RestResponseBody::class.java)
-        assert(userDuplicateResult.body?.restException == RestExceptionExceptions.DUPLICATE_USER)
+        val errorHandler = TestResponseErrorHandler()
+        val restTemplateWithErrors = RestTemplateBuilder()
+                .errorHandler(errorHandler)
+                .basicAuthentication(adminUsername,adminPassword)
+                .build()
+        restTemplateWithErrors.postForEntity("$protocol://localhost:$port$apiV1Path/users", HttpEntity(user!!), CloudBackEncUser::class.java)
+        assert(errorHandler.restException == RestExceptionExceptions.DUPLICATE_USER)
 
     }
 
@@ -133,7 +139,7 @@ class E2ETests {
         val requestHeaders = HttpHeaders()
         requestHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer ${userToken?.token}")
         val httpEntity = HttpEntity<Any>(requestHeaders)
-        val secondResponse = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/auth", HttpMethod.GET,httpEntity,AuthenticationToken::class.java)
+        val secondResponse = restTemplate.exchange("$protocol://localhost:$port$apiV1Path/auth", HttpMethod.GET,httpEntity, AuthenticationToken::class.java)
         assert(secondResponse.hasBody()) { "User login failed using previously retrieved token." }
     }
 

@@ -32,13 +32,13 @@ import org.springframework.context.MessageSource
 import org.springframework.context.annotation.Lazy
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.annotation.Secured
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Rest Controller that takes an instance of CloudServiceAuthenticationRequest as JSON, calls the login method of the requested cloud
@@ -83,20 +83,13 @@ class CloudServiceAuthenticationController {
      */
     @RequestMapping("/login/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest) : ResponseEntity<CloudServiceAuthenticationResponse> {
+    @ResponseBody
+    fun login(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest, response: HttpServletResponse) : CloudServiceAuthenticationResponse {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid]  ?: throw InvalidCloudServiceUuidException()
-        val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
-        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
-            cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
-        }
-        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret.isNullOrBlank()){
-            cloudServiceFactoryInstance.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret!!
-        }
-        val authenticationService = cloudServiceFactoryInstance.authenticationService
+        val authenticationService = getAuthenticationService(uuid)
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-        val response : CloudServiceAuthenticationResponse
+        val authenticationResponse : CloudServiceAuthenticationResponse
         //debug message: ignore and let it default to null if URL is invalid or missing
         try {
             URL(user.authorizationCallbackURL)
@@ -113,42 +106,35 @@ class CloudServiceAuthenticationController {
 
         //TODO: make this async with a timeout
         try {
-            response = authenticationService.login(CloudServiceAuthenticationRequest(user.username, user.password, uuid.toString(), user.authorizationCallbackURL, user.replyWithAuthorizationUrl), currentUser.cloudBackEncUser())
+            authenticationResponse = authenticationService.login(CloudServiceAuthenticationRequest(user.username, user.password, uuid.toString(), user.authorizationCallbackURL, user.replyWithAuthorizationUrl), currentUser.cloudBackEncUser())
         } catch (e: Exception) {
             logger.warn { "${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}" }
             throw CloudServiceException(e.message, e)
         }
-        val status: HttpStatus =
-                when (response.cloudServiceAuthenticationState) {
-                    CloudServiceAuthenticationState.LOGGED_IN -> HttpStatus.OK
-                    CloudServiceAuthenticationState.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED
-                    else -> HttpStatus.BAD_REQUEST
+        response.status =
+                when (authenticationResponse.cloudServiceAuthenticationState) {
+                    CloudServiceAuthenticationState.LOGGED_IN -> HttpStatus.OK.value()
+                    CloudServiceAuthenticationState.AWAITING_AUTHORIZATION -> HttpStatus.ACCEPTED.value()
+                    else -> HttpStatus.BAD_REQUEST.value()
                 }
-        return ResponseEntity(response, status)
+        return authenticationResponse
     }
     /**
      * Rest POST service which calls the logout function of the cloud service.
      *
      * @param uuid The UUID of the cloud service extension.
      * @param user A CloudServiceAuthenticationRequest object that contains the user information for the cloud service.
-     * @return CloudServiceAuthenticationState value indicating the login state.
+     * @return CloudServiceAuthenticationState value indicating the login state wrapped in a RestResponseBody or RestResponseBody with .restException set.
      */
     @RequestMapping("/logout/{uuid}", method = [RequestMethod.POST], produces = ["application/json"])
     @Secured("ROLE_USER","ROLE_ADMIN")
-    fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest) : ResponseEntity<CloudServiceAuthenticationState> {
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun logout(@PathVariable(value="uuid")uuid: UUID, @RequestBody user: CloudServiceAuthenticationRequest) : CloudServiceAuthenticationState {
         val locale = LocaleContextHolder.getLocale()
-        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUuidException()
-        val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
-        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
-            cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
-        }
-        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret.isNullOrBlank()){
-            cloudServiceFactoryInstance.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret!!
-        }
-        val authenticationService = cloudServiceFactoryInstance.authenticationService
+        val authenticationService = getAuthenticationService(uuid)
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUser = userRepository.findByUsername(authorizedUser.name) ?: throw CloudServiceException("Authenticated user could not be found.")
-
         try {
             val listener = CloudServiceAuthenticationCompleteListener(currentUser.cloudBackEncUser(), userAccountDetailsManager, userRepository, null, cloudServiceUserRepository)
             authenticationService.cloudServiceAuthenticationRefreshListener = listener
@@ -157,7 +143,20 @@ class CloudServiceAuthenticationController {
             logger.warn{"${messageSource.getMessage("centralcontroller.cloudservices.error.login", emptyArray(), locale)} Error during login process. ${e.message}"}
             throw CloudServiceException(e.message, e)
         }
-        return ResponseEntity(CloudServiceAuthenticationState.LOGGED_OUT, HttpStatus.OK)
+        return CloudServiceAuthenticationState.LOGGED_OUT
     }
+
+    fun getAuthenticationService(uuid: UUID):CloudServiceAuthenticationService {
+        val cloudServiceFactory = cloudServiceFactoryRepository.extensions[uuid] ?: throw InvalidCloudServiceUuidException()
+        val cloudServiceFactoryInstance = cloudServiceFactory.getDeclaredConstructor().newInstance() as CloudServiceFactory
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientId"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientId!!
+        }
+        if (!cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret.isNullOrBlank()){
+            cloudServiceFactoryInstance.additionalSettings["clientSecret"] = cloudServicesSettings.cloudServicesSecrets[uuid.toString()]?.clientSecret!!
+        }
+        return cloudServiceFactoryInstance.authenticationService
+    }
+
 
 }

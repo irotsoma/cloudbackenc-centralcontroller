@@ -45,3 +45,14 @@ class InvalidEmailAddressException : RestException(RestExceptionExceptions.INVAL
  * Custom exception for exceptions during the authentication process.  Used for internal server errors not for invalid credentials.
  */
 class AuthenticationException : RestException(RestExceptionExceptions.AUTHENTICATION_EXCEPTION)
+
+/**
+ * Custom exception for an unauthorized user attempting to access a secure resource.
+ */
+class UserUnauthorizedException : RestException(RestExceptionExceptions.USER_UNAUTHORIZED)
+
+/**
+ * Custom exception for generic invalid request.
+ */
+class InvalidRequestException : RestException(RestExceptionExceptions.INVALID_REQUEST)
+
