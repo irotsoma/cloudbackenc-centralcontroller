@@ -37,7 +37,7 @@ plugins {
     val kotlinVersion = "1.3.60"
     val springBootVersion = "2.1.2.RELEASE"
     val liquibaseGradleVersion = "2.0.1"
-    val dokkaVersion = "0.9.17"
+    val dokkaVersion = "0.10.1"
     java
     id("io.spring.dependency-management") version "1.0.7.RELEASE"
     id("com.github.hierynomus.license") version "0.15.0"
@@ -159,9 +159,12 @@ tasks.assemble{
 
 //javadoc stuff for Kotlin
 val dokka by tasks.getting(DokkaTask::class) {
+    outputFormat = "html"
     outputDirectory = "$buildDir/docs/javadoc"
-    jdkVersion = 8
-    reportUndocumented = true
+    configuration {
+        jdkVersion = 8
+        reportUndocumented = true
+    }
 }
 
 tasks.register<Jar>("sourcesJar") {

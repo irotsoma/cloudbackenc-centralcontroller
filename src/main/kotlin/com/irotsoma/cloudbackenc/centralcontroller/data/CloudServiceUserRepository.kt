@@ -56,7 +56,7 @@ interface CloudServiceUserRequestRepository : JpaRepository<CloudServiceUserRequ
      * @param cloudServiceUsername The username used to log in to the cloud service
      * @returns An instance of [CloudServiceUserRequestObject] representing the database record or null if the user has no records
      */
-    fun findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId: Long, cloudServiceUuid: String, cloudServiceUsername: String?): CloudServiceUserRequestObject?
+    fun findByUserIdAndCloudServiceUuidAndCloudServiceUsername(userId: Long, cloudServiceUuid: UUID, cloudServiceUsername: String?): CloudServiceUserRequestObject?
     /**
      * retrieve a list of all of the unique internal users who have configured cloud service logins
      *
