@@ -35,12 +35,13 @@ val kotlinCoroutinesVersion="1.2.1"
 
 plugins {
     val kotlinVersion = "1.3.60"
-    val springBootVersion = "2.1.2.RELEASE"
+    val springBootVersion = "2.3.4.RELEASE"
     val liquibaseGradleVersion = "2.0.1"
     val dokkaVersion = "0.10.1"
     java
     id("io.spring.dependency-management") version "1.0.7.RELEASE"
     id("com.github.hierynomus.license") version "0.15.0"
+    id("com.github.hierynomus.license-report") version "0.15.0"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     id("org.jetbrains.dokka") version dokkaVersion
@@ -131,7 +132,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-sourceSets["main"].resources.srcDirs.add(file("$buildDir/license-reports/"))
+
 
 //exclude spring boot logging as it will conflict with the slf4j used by kotlin logging
 configurations.all{
@@ -147,14 +148,26 @@ license {
     mapping("fxml", "XML_STYLE")
     excludes(arrayListOf<String>("**/*.json", "**/LICENSE", "**/*license*.html", "**/*license*.xml", "**/COPYING", "**/COPYING.LESSER", "**/*.jar", "**/*.dat", "**/*.p12"))
 }
+sourceSets.main{
+    resources {
+        setSrcDirs(srcDirs.plus(file("$buildDir/license-reports/")))
+    }
+}
+downloadLicenses {
+    includeProjectDependencies = true
+    dependencyConfiguration = "implementation"
+}
+configurations.implementation{
+    isCanBeResolved = true
+}
 tasks.register<Copy>("copyLicenseReports") {
     from(file("$buildDir/reports/license/"))
     into(file("$buildDir/license-reports/META-INF/licenses"))
     mustRunAfter("downloadLicenses")
 }
-tasks.assemble{ 
-    dependsOn("downloadLicenses") 
-    dependsOn("copyLicenseReports") 
+tasks.assemble{
+    dependsOn("downloadLicenses")
+    dependsOn("copyLicenseReports")
 }
 
 //javadoc stuff for Kotlin

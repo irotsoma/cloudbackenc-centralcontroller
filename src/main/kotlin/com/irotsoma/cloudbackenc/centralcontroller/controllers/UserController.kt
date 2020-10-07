@@ -19,10 +19,7 @@
 package com.irotsoma.cloudbackenc.centralcontroller.controllers
 
 import com.irotsoma.cloudbackenc.centralcontroller.authentication.UserAccountDetailsManager
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.CloudBackEncUserNotFound
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.DuplicateUserException
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.InvalidEmailAddressException
-import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.UserUnauthorizedException
+import com.irotsoma.cloudbackenc.centralcontroller.controllers.exceptions.*
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileObject
 import com.irotsoma.cloudbackenc.centralcontroller.data.EncryptionProfileRepository
 import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountObject
@@ -30,6 +27,7 @@ import com.irotsoma.cloudbackenc.centralcontroller.data.UserAccountRepository
 import com.irotsoma.cloudbackenc.centralcontroller.encryption.EncryptionExtensionRepository
 import com.irotsoma.cloudbackenc.common.CloudBackEncRoles
 import com.irotsoma.cloudbackenc.common.CloudBackEncUser
+import com.irotsoma.cloudbackenc.common.UserAccountState
 import com.irotsoma.cloudbackenc.common.encryption.*
 import mu.KLogging
 import org.apache.commons.validator.routines.EmailValidator
@@ -71,6 +69,7 @@ class UserController {
     /** kotlin-logging implementation */
     private companion object: KLogging()
     @Autowired
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection") //suppress error caused by mail config being in external properties file
     private lateinit var javaMailSender: JavaMailSender
     @Autowired
     private lateinit var userAccountDetailsManager: UserAccountDetailsManager
@@ -96,7 +95,7 @@ class UserController {
     fun createUser(@RequestBody user: CloudBackEncUser, uriComponentsBuilder: UriComponentsBuilder, response: HttpServletResponse) {
         //val authorizedUser = SecurityContextHolder.getContext().authentication
         //check to see if there is a duplicate user
-        if (userRepository.findByUsername(user.username) != null){
+        if (userRepository.findAllByUsername(user.username) != null){
             throw DuplicateUserException()
         }
 
@@ -108,7 +107,7 @@ class UserController {
             }
         }
         //create and save new user
-        val newUserAccount = UserAccountObject(user.username, user.password, user.email, user.enabled, user.roles)
+        val newUserAccount = UserAccountObject(user.username, user.password, user.email, user.state, user.roles)
         userRepository.saveAndFlush(newUserAccount)
         //send email to user
         val locale = LocaleContextHolder.getLocale()
@@ -139,17 +138,45 @@ class UserController {
         val authorizedUser = SecurityContextHolder.getContext().authentication
         val currentUserAccount = userAccountDetailsManager.loadUserByUsername(authorizedUser.name)
         //authorized user requesting the update must either be the user in the request or be an admin
-        if (!((updatedUser.username == authorizedUser.name) || (currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})))) {
+        val isAdmin = currentUserAccount.authorities.contains(GrantedAuthority{CloudBackEncRoles.ROLE_ADMIN.name})
+        if (!((updatedUser.username == authorizedUser.name) || (isAdmin))) {
             throw UserUnauthorizedException()
         }
         //
         try{
-            val userToUpdate = userRepository.findByUsername(updatedUser.username) ?: throw CloudBackEncUserNotFound()
+            val userToUpdate = userRepository.findAllByUsername(updatedUser.username) ?: throw CloudBackEncUserNotFound()
+            //update password if included
             if (updatedUser.password != CloudBackEncUser.PASSWORD_MASKED){
                 userToUpdate.password = updatedUser.password
             }
-            if (updatedUser.email != null){
+            //update email if included
+            if (updatedUser.email != null && updatedUser.email != "") {
+                //TODO: verify email format
                 userToUpdate.email = updatedUser.email
+            }
+            //update enabled state if different
+            if (updatedUser.state != userToUpdate.state) {
+                //should use delete method so throw invalid request exception
+                if (updatedUser.state == UserAccountState.DELETED) {
+                    throw InvalidRequestException()
+                }
+                //if trying to change the state of an existing user to active, must be admin
+                if (updatedUser.state == UserAccountState.ACTIVE && !isAdmin) {
+                    throw UserUnauthorizedException()
+                }
+                userToUpdate.state = updatedUser.state
+            }
+            //update roles if not empty and different from existing
+            if (updatedUser.roles.isNotEmpty()) {
+                //can't assign test role
+                if (updatedUser.roles.contains(CloudBackEncRoles.ROLE_TEST) && userToUpdate.roles?.contains(CloudBackEncRoles.ROLE_TEST) != true) {
+                    throw InvalidRequestException()
+                }
+                //only admins can add the admin role
+                if (updatedUser.roles.contains(CloudBackEncRoles.ROLE_ADMIN) && userToUpdate.roles?.contains(CloudBackEncRoles.ROLE_ADMIN) != true && !isAdmin) {
+                    throw UserUnauthorizedException()
+                }
+                userToUpdate.roles = updatedUser.roles
             }
             userRepository.saveAndFlush(userToUpdate)
         } catch(e: UsernameNotFoundException){

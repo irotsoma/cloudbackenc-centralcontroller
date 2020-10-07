@@ -20,6 +20,7 @@ package com.irotsoma.cloudbackenc.centralcontroller.data
 
 import org.hibernate.annotations.Where
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 /**
@@ -53,4 +54,12 @@ interface UserAccountRepository : JpaRepository<UserAccountObject, Long> {
      * @returns An instance of [UserAccountObject] representing the database record or empty list if the [EncryptionProfileObject] was not found
      */
     fun findByDefaultEncryptionProfile(profile: EncryptionProfileObject): List<UserAccountObject>
+    /**
+     * retrieve a record by the username of the user even if the user is not active
+     *
+     * @param username The username of the user to retrieve
+     * @returns An instance of [UserAccountObject] representing the database record or null if the username was not found
+     */
+    @Query("select u from UserAccountObject u where u.username = ?1")
+    fun findAllByUsername(username: String): UserAccountObject?
 }
