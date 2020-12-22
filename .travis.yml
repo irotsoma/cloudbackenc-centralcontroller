@@ -1,7 +1,6 @@
 language: java
-jdk: openjdk8
 
 before_install:
-  - chmod +x gradlew
+  - sudo chmod +x gradlew
 addons:
   artifacts: true
